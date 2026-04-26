@@ -1,8 +1,14 @@
 # CLAUDE.md — realtor-os-wiki
 
-> Private docs site documenting the upstream open-source repo
+> **Public** docs site documenting the upstream open-source repo
 > `puzzled-mushroom911/claude-code-real-estate-framework` AS-IS.
-> AI agents primary audience. Phong secondary.
+> AI agents primary audience (MCP queryable), Phong secondary.
+>
+> Mode change 2026-04-26: switched from Private+OAuth → Public.
+> Reasons: (1) Documentation.AI MCP only supports public docs without
+> support ticket. (2) OAuth flow had a Session-Expired bug we couldn't
+> work around. Public mode unblocks MCP indexing immediately.
+> Books folder remains skipped (DMCA risk on public site).
 
 ## Scope
 
@@ -50,7 +56,7 @@ See `AGENTS.md` for Agent A/B/C/D scope map and `CODEOWNERS` for path enforcemen
 
 1. No `<[digit]` (JSX collision) — escape as `&lt;[`
 2. No HTML comments `<!-- -->` — use `{/* JSX */}`
-3. No Mermaid (unsupported) — use ASCII or PNG
+3. Mermaid IS supported (Documentation.AI native); inject `%%{init: themeVariables}%%` directive for dark-mode-readable text. See workflows/* for canonical pattern.
 4. Pipe `|` inside JSX attribute in markdown table → escape or restructure
 5. Asterisks inside `<text>` SVG — escape as `&#42;`
 
