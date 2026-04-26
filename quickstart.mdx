@@ -1,0 +1,180 @@
+---
+title: Quickstart Guide
+description: Get up and running with Realtor OS by setting up your account and completing your first actions in minutes.
+---
+
+## Prerequisites
+
+Before starting, ensure you have:
+
+- A valid email address for account creation
+- Basic information about your first property listing (address, price, photos)
+
+<Callout kind="info">
+
+Realtor OS requires a modern web browser like Chrome, Firefox, or Safari. Disable ad blockers for the best experience.
+
+</Callout>
+
+## Create Your Account and Log In
+
+Follow these steps to set up your Realtor OS account.
+
+<Steps>
+  <Step title="Sign Up" icon="user-plus">
+    Visit `https://dashboard.example.com/signup` and enter your email, name, and password.
+    
+    Verify your email by clicking the link sent to your inbox.
+  </Step>
+  <Step title="Log In" icon="log-in">
+    Go to `https://dashboard.example.com/login`.
+    
+    Enter your credentials and complete two-factor authentication if enabled.
+  </Step>
+  <Step title="Complete Onboarding" icon="check-circle">
+    Follow the dashboard prompts to select your agency size and preferred features.
+  </Step>
+</Steps>
+
+## Initial Dashboard Setup
+
+Customize your dashboard for efficient property management.
+
+<Steps>
+  <Step title="Set Preferences" icon="settings">
+    Navigate to **Account > Preferences**.
+    
+    Choose your default currency (e.g., USD), time zone, and notification settings.
+  </Step>
+  <Step title="Connect Integrations" icon="link">
+    In **Integrations**, add MLS feeds or email providers.
+    
+    Use the `+ Connect` button for quick setup.
+  </Step>
+</Steps>
+
+## Add Your First Property Listing
+
+List a property via the dashboard or API.
+
+### Dashboard Method
+
+1. Click **Listings > New Property**.
+2. Enter details: address, beds (`3`), baths (`2`), price (`$450,000`).
+3. Upload photos and publish.
+
+### API Method
+
+Use the API to add listings programmatically.
+
+<CodeGroup tabs="JavaScript,Python,cURL">
+  ```javascript
+  const response = await fetch('https://api.example.com/v1/properties', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer YOUR_API_KEY',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      address: '123 Main St, Anytown, CA 12345',
+      price: 450000,
+      bedrooms: 3,
+      bathrooms: 2
+    })
+  });
+  const property = await response.json();
+  console.log(property.id);
+  ```
+  ```python
+  import requests
+
+  response = requests.post(
+    'https://api.example.com/v1/properties',
+    headers={
+      'Authorization': 'Bearer YOUR_API_KEY',
+      'Content-Type': 'application/json'
+    },
+    json={
+      'address': '123 Main St, Anytown, CA 12345',
+      'price': 450000,
+      'bedrooms': 3,
+      'bathrooms': 2
+    }
+  )
+  property = response.json()
+  print(property['id'])
+  ```
+  ```bash
+  curl -X POST https://api.example.com/v1/properties \
+    -H "Authorization: Bearer YOUR_API_KEY" \
+    -H "Content-Type: application/json" \
+    -d '{
+      "address": "123 Main St, Anytown, CA 12345",
+      "price": 450000,
+      "bedrooms": 3,
+      "bathrooms": 2
+    }'
+  ```
+</CodeGroup>
+
+<ParamField path="address" param-type="string" required="true">
+  Full property address including city and ZIP.
+</ParamField>
+
+<ParamField path="price" param-type="number" required="true">
+  Listing price in cents (e.g., `450000` for $450,000).
+</ParamField>
+
+## Basic Navigation Tips
+
+Switch between views efficiently.
+
+<Tabs>
+  <Tab title="Dashboard" icon="home">
+    Overview of active listings, leads, and performance metrics.
+    
+    Use the search bar for quick property lookup.
+  </Tab>
+  <Tab title="Listings" icon="map-pin">
+    Manage all properties here.
+    
+    Filter by status: Active, Pending, Sold.
+  </Tab>
+  <Tab title="Settings" icon="settings">
+    Account, integrations, and billing.
+    
+    Enable API access under **Developers**.
+  </Tab>
+</Tabs>
+
+## Common First-Time Pitfalls
+
+Avoid these issues to save time.
+
+<Callout kind="alert">
+
+- **Missing API Key**: Generate your key in **Settings > Developers** before using API endpoints.
+- **Invalid Property Data**: Ensure price is a number without `$` symbol.
+- **Email Verification**: Check spam folder for signup confirmation.
+- **Browser Cache**: Clear cache if dashboard looks outdated.
+
+</Callout>
+
+## Next Steps
+
+Explore advanced features.
+
+<Columns cols={2}>
+  <Card title="API Reference" icon="code" href="/authentication">
+    Integrate Realtor OS into your apps with full API docs.
+  </Card>
+  <Card title="Advanced Guides" icon="book-open" href="/guides">
+    Learn property analytics and lead management.
+  </Card>
+  <Card title="Configuration" icon="settings" href="/configuration">
+    Customize workflows and automations.
+  </Card>
+  <Card title="Changelog" icon="git-branch" href="/changelog">
+    Stay updated with latest releases.
+  </Card>
+</Columns>
