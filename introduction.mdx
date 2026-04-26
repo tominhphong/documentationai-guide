@@ -1,50 +1,60 @@
 ---
-title: Introduction to Realtor OS
-description: Discover Realtor OS, a comprehensive SaaS platform designed to streamline real estate operations for agents and teams.
+title: "What This System Is"
+description: "Private technical reference for the claude-code-real-estate-framework — agents, MCP tools, workflows, and marketing playbooks for AI-augmented real estate work."
+last_reviewed: 2026-04-25
+type: overview
+audience: both
+use_case: ["onboard-agent-to-realtor-os", "understand-wiki-purpose-and-scope"]
+keywords: [realtor-os, framework, overview, real-estate, ai-agents, claude-code]
 ---
 
-<Image src="https://blob-cdn.documentation.ai/org-2ebb2ef5-dd91-493f-9938-283fbdb14c81/doc-d2a73d2e-4391-4446-a5c8-2d0b41b7c4c1/1774416420393-s9t4cno1w99-Image-8.png?q=85&fm=auto&auto=compress%2Cformat" alt="Realtor OS documentation" width="800" height="400" />
+# What This System Is
 
-## Welcome to Realtor OS
+`realtor-os-wiki` is a **private technical reference** documenting the open-source repo [`puzzled-mushroom911/claude-code-real-estate-framework`](https://github.com/puzzled-mushroom911/claude-code-real-estate-framework) AS-IS.
 
-Realtor OS empowers real estate agents and teams with a unified platform to manage listings, clients, and operations efficiently. You gain tools to boost productivity and close deals faster.
+The upstream framework is an AI-powered toolkit for real estate agents using Claude Code: YouTube-to-knowledge-base, content repurposing, lead nurture emails, CRM automation, and relocation guides. It ships **9 agents**, **17 MCP tools**, and marketing playbooks distilled from Hormozi, Brunson, and Channel Junkies.
 
-## Key Features
+## What This Wiki Documents
 
-<Columns cols={2}>
-  <Card title="Listing Management" icon="home" href="/listings">
-    Create, edit, and showcase properties with stunning visuals and virtual tours.
-  </Card>
-  <Card title="Client CRM" icon="users" href="/crm">
-    Track leads, nurture relationships, and automate follow-ups seamlessly.
-  </Card>
-  <Card title="Team Collaboration" icon="share-2" href="/collaboration">
-    Coordinate with your team in real-time on deals and tasks.
-  </Card>
-  <Card title="Analytics Dashboard" icon="bar-chart-3" href="/analytics">
-    Gain insights into performance metrics and market trends.
-  </Card>
-</Columns>
+- **9 agents** — system prompts for email-writer, customer-response, youtube-pipeline, teleprompter, voice-processor, content-repurposer, relocation-guide-generator, crm-agent, youtube-to-blog
+- **6 MCP tool groups** — `rag`, `youtube`, `content`, `crm`, `csv`, `guide` (17 tools total)
+- **6 Python tool categories** — backing implementation of MCP wrappers
+- **3 marketing frameworks** — Brunson Daily Seinfeld, Hormozi Value Equation, Channel Junkies hooks (paraphrased only)
+- **Workflows** — 1-video-to-5-assets multiplier, voice-cloning pipeline, lead-magnet generation
+- **Setup + troubleshooting** — installation, common MDX gotchas, glossary
 
-## Who Uses Realtor OS
+## Who It's For
 
-Real estate agents, brokers, and teams rely on Realtor OS to simplify daily workflows. Whether you are a solo professional or managing a large agency, the platform scales to your needs.
+| Audience | Use Case |
+|---|---|
+| **AI agents** (Claude, Sonnet, GPT-5) | Search via MCP endpoint to find tool signatures, agent prompts, framework rules |
+| **Phong (owner)** | Reference while building / customizing realtor pipelines |
 
-## Get Started
+This site is **NOT** for:
+- The general public (private + password-protected)
+- Marketing or course content
+- Sales of the framework
+- Documenting Phong's personal customizations (those live elsewhere)
 
-<Columns cols={2}>
-  <Card title="Quickstart Guide" icon="book-open" href="/quickstart" horizontal>
-    Set up your account and launch in minutes.
-  </Card>
-  <Card title="Authentication" icon="shield" href="/authentication" horizontal>
-    Secure access for you and your team.
-  </Card>
-</Columns>
+## What's NOT Included
 
-## Why Choose Realtor OS
+- Verbatim text from Hormozi / Brunson / Channel Junkies books — only high-level paraphrase + citation
+- Phong's case study or playbook (different project — see Agent OS site)
+- Bilingual content — English only
+- Live property data (that lives in `phong-realtyapi` MCP)
 
-You select Realtor OS for its intuitive design, robust security, and real estate-specific features that save time and increase revenue.
+## Sister Sites
 
-<Callout kind="tip">
-  This documentation was generated as a starter kit. Customize the content to match your product.
-</Callout>
+This wiki is one of three docs sites in Phong's ecosystem:
+
+| Site | Purpose | URL |
+|---|---|---|
+| Agent OS | System operations (rules, agent collaboration, principles) | [antigravity-memory-palace.documentationai.com](https://antigravity-memory-palace.documentationai.com) |
+| RKB (Realtor KB) | Realtor domain knowledge (sales, CRM, buyer journey) | [phong-to.documentationai.com](https://phong-to.documentationai.com) |
+| **realtor-os-wiki** (this) | Technical reference for claude-code-real-estate-framework | TBD |
+
+## Read Next
+
+- [Quickstart](/quickstart) — clone upstream + run example agent
+- Framework overview (Phase 2 — coming)
+- Agent prompts catalog (Phase 2 — coming)

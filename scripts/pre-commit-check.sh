@@ -1,0 +1,192 @@
+#!/usr/bin/env bash
+# pre-commit-check.sh — validate MDX content before push
+# Owner: Win 4 (Reference & QA)
+# Usage: bash scripts/pre-commit-check.sh [path]  (default: repo root)
+
+set -u
+
+TARGET="${1:-.}"
+ERRORS=0
+
+echo "=== Pre-commit check for: $TARGET ==="
+
+# NOTE: Update [X/N] counters below if adding new gotchas. Current total: 7.
+
+# Strip fenced code blocks AND inline code spans before pattern-matching.
+# Docs about bad patterns (like mdx-gotchas.mdx) intentionally contain example
+# bad strings inside code fences/spans — those should not be flagged.
+strip_code_content() {
+  # Match ``` even when indented (inside numbered lists, blockquotes, etc.)
+  awk 'BEGIN{in_block=0}
+    /^[[:space:]]*```/{in_block=!in_block; next}
+    !in_block{gsub(/`[^`]*`/, "INLINE_CODE"); print}' "$1"
+}
+
+# Build list of all mdx files once
+MDX_FILES=()
+while IFS= read -r -d '' f; do
+  MDX_FILES+=("$f")
+done < <(find "$TARGET" -name "*.mdx" -print0 2>/dev/null)
+
+# Gotcha 1 — Unicode checkbox characters
+echo ""
+echo "[1/4] Checking for Unicode checkboxes..."
+HITS=""
+for f in "${MDX_FILES[@]}"; do
+  MATCH=$(strip_code_content "$f" | grep -nE "☐|□" || true)
+  if [ -n "$MATCH" ]; then
+    while IFS= read -r line; do
+      HITS="${HITS}${f}:${line}"$'\n'
+    done <<< "$MATCH"
+  fi
+done
+if [ -n "$HITS" ]; then
+  echo "FAIL: Found Unicode checkbox characters — replace with '- [ ]':"
+  echo "$HITS"
+  ERRORS=$((ERRORS + 1))
+else
+  echo "PASS: No Unicode checkboxes."
+fi
+
+# Gotcha 2 — <NUMBER% parsed as JSX
+echo ""
+echo "[2/4] Checking for <NUMBER patterns..."
+HITS=""
+for f in "${MDX_FILES[@]}"; do
+  MATCH=$(strip_code_content "$f" | grep -nE "<[0-9]" || true)
+  if [ -n "$MATCH" ]; then
+    while IFS= read -r line; do
+      HITS="${HITS}${f}:${line}"$'\n'
+    done <<< "$MATCH"
+  fi
+done
+if [ -n "$HITS" ]; then
+  echo "FAIL: Found <NUMBER patterns — rephrase 'under N' or 'duoi N':"
+  echo "$HITS"
+  ERRORS=$((ERRORS + 1))
+else
+  echo "PASS: No <NUMBER patterns."
+fi
+
+# Gotcha 3 — Missing frontmatter (title or description)
+echo ""
+echo "[3/4] Checking frontmatter (title + description required)..."
+MISSING=()
+for f in "${MDX_FILES[@]}"; do
+  HEAD=$(head -10 "$f")
+  if ! echo "$HEAD" | grep -q "^title:"; then
+    MISSING+=("$f: missing 'title:'")
+  fi
+  if ! echo "$HEAD" | grep -q "^description:"; then
+    MISSING+=("$f: missing 'description:'")
+  fi
+done
+
+if [ ${#MISSING[@]} -gt 0 ]; then
+  echo "FAIL: Missing frontmatter fields:"
+  printf '  %s\n' "${MISSING[@]}"
+  ERRORS=$((ERRORS + 1))
+else
+  echo "PASS: All MDX files have title + description."
+fi
+
+# Gotcha 4 — HTML comments inside JSX (MDX v3 parse error)
+# Sprint 7 lesson: SVG <!-- --> comments cause "Unexpected character !" on deploy.
+# Use JSX comment syntax {/* */} instead.
+echo ""
+echo "[4/5] Checking for HTML comments <!-- --> in MDX..."
+HITS=""
+for f in "${MDX_FILES[@]}"; do
+  MATCH=$(strip_code_content "$f" | grep -nE "<!--" || true)
+  if [ -n "$MATCH" ]; then
+    while IFS= read -r line; do
+      HITS="${HITS}${f}:${line}"$'\n'
+    done <<< "$MATCH"
+  fi
+done
+if [ -n "$HITS" ]; then
+  echo "FAIL: Found HTML comments — replace <!-- X --> with {/* X */} for MDX v3:"
+  echo "$HITS"
+  ERRORS=$((ERRORS + 1))
+else
+  echo "PASS: No HTML comments (MDX v3 JSX-safe)."
+fi
+
+# Gotcha 5 — Markdown emphasis chars inside SVG <text> (MDX parse error)
+# Sprint 7 lesson 2: '*' inside <text>...</text> triggers markdown emphasis parsing,
+# spans across tags, breaks closing. Use &#42; (HTML entity) for literal asterisk.
+echo ""
+echo "[5/6] Checking for * or ** inside SVG <text> tags..."
+HITS=""
+for f in "${MDX_FILES[@]}"; do
+  # Flag any <text>...*...</text> pattern (single line)
+  MATCH=$(grep -nE '<text[^>]*>[^<]*\*[^<]*</text>' "$f" || true)
+  if [ -n "$MATCH" ]; then
+    while IFS= read -r line; do
+      HITS="${HITS}${f}:${line}"$'\n'
+    done <<< "$MATCH"
+  fi
+done
+if [ -n "$HITS" ]; then
+  echo "FAIL: Found '*' inside <text> — escape as &#42; to avoid MDX emphasis parse:"
+  echo "$HITS"
+  ERRORS=$((ERRORS + 1))
+else
+  echo "PASS: No '*' in SVG <text> tags."
+fi
+
+# Gotcha 6 — Vietnamese ASCII (heuristic: warning only, does not fail build)
+echo ""
+echo "[6/6] Quick heuristic for ASCII-only Vietnamese (low-confidence)..."
+WARN=""
+for f in "${MDX_FILES[@]}"; do
+  MATCH=$(strip_code_content "$f" | grep -nE "phong ngu|Ho tro|Tu [A-Z]|Gia [0-9]" || true)
+  if [ -n "$MATCH" ]; then
+    while IFS= read -r line; do
+      WARN="${WARN}${f}:${line}"$'\n'
+    done <<< "$MATCH"
+  fi
+done
+if [ -n "$WARN" ]; then
+  echo "WARN: Possible ASCII-only Vietnamese (verify manually):"
+  echo "$WARN"
+else
+  echo "PASS: No obvious ASCII Vietnamese patterns."
+fi
+
+# Gotcha 7 — Pipe inside JSX attribute string in markdown table cell
+# cecf2b8 lesson: `<Callout kind="info|warning">` inside a table cell causes
+# MDX v3/v4 parser to treat | as a column separator → unclosed attribute → 500.
+# Replace | with / inside quoted JSX attribute values when in table rows.
+# NOTE: strip fenced code blocks first — docs about THIS bug legitimately contain
+# the pattern inside ```jsx examples (see core-rules/hard-rule-documentationai-context.mdx).
+# Mintlify does NOT parse fenced code as MDX, so those are safe.
+echo ""
+echo "[7/7] Checking for pipe '|' inside JSX attribute strings in table rows..."
+HITS=""
+for f in "${MDX_FILES[@]}"; do
+  # Match table row lines (starting with optional space + |) containing ="...|..."
+  MATCH=$(strip_code_content "$f" | grep -nE '^\s*\|.*="[^"]*\|[^"]*"' || true)
+  if [ -n "$MATCH" ]; then
+    while IFS= read -r line; do
+      HITS="${HITS}${f}:${line}"$'\n'
+    done <<< "$MATCH"
+  fi
+done
+if [ -n "$HITS" ]; then
+  echo "FAIL: Found pipe '|' inside JSX attribute string in table row — replace | with / in the attribute value:"
+  echo "$HITS"
+  ERRORS=$((ERRORS + 1))
+else
+  echo "PASS: No pipe in JSX attribute strings inside table rows."
+fi
+
+echo ""
+echo "=== Summary ==="
+if [ $ERRORS -eq 0 ]; then
+  echo "ALL CHECKS PASSED — safe to commit/push."
+  exit 0
+else
+  echo "FAILED: $ERRORS check(s) failed — fix before commit/push."
+  exit 1
+fi

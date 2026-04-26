@@ -1,0 +1,33 @@
+# CODEOWNERS — realtor-os-wiki
+# Enforces file ownership during multi-agent parallel content generation.
+# Format: path-pattern  @owner
+
+# Brain owns nav, top-level pages, infra
+/documentation.json     @brain
+/introduction.mdx       @brain
+/quickstart.mdx         @brain
+/CLAUDE.md              @brain
+/AGENTS.md              @brain
+/CODEOWNERS             @brain
+/README.md              @brain
+/.gitignore             @brain
+/scripts/               @brain
+/.github/               @brain
+/plans/                 @brain
+
+# Agent A — framework + core-rules
+/framework/             @agent-a
+/core-rules/            @agent-a
+
+# Agent B — workflows + agent-instructions
+/workflows/             @agent-b
+/agent-instructions/    @agent-b
+
+# Agent C — mcp-tools + python-tools
+/mcp-tools/             @agent-c
+/python-tools/          @agent-c
+
+# Agent D — frameworks + knowledge-qa + help-center
+/frameworks/            @agent-d
+/knowledge-qa/          @agent-d
+/help-center/           @agent-d

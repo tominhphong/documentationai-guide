@@ -1,180 +1,135 @@
 ---
-title: Quickstart Guide
-description: Get up and running with Realtor OS by setting up your account and completing your first actions in minutes.
+title: "Quickstart"
+description: "Clone the claude-code-real-estate-framework upstream repo, install dependencies, configure agent profile, and run a first MCP query — all in under 30 minutes."
+last_reviewed: 2026-04-25
+type: workflow
+audience: both
+use_case: ["bootstrap-realtor-framework", "verify-mcp-tools-loaded"]
+keywords: [quickstart, setup, install, mcp, claude-code, real-estate-framework]
 ---
+
+# Quickstart
+
+End-to-end setup of the upstream `claude-code-real-estate-framework` repo. Adapted from `README.md` + `DESKTOP-SETUP.md` of the upstream repo. For the deep setup guide, see Help Center → Setup Guide (Phase 2 — coming).
 
 ## Prerequisites
 
-Before starting, ensure you have:
+| Requirement | Why |
+|---|---|
+| macOS or Linux | Setup scripts assume Unix |
+| Homebrew | Installs Python, Node, yt-dlp, ffmpeg |
+| Claude Code CLI | Runs the agents + MCP wrapper |
+| GitHub account | Clone the upstream repo |
 
-- A valid email address for account creation
-- Basic information about your first property listing (address, price, photos)
+## Step 1 — Install System Dependencies
 
-<Callout kind="info">
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+brew install python@3.12 node yt-dlp ffmpeg
+```
 
-Realtor OS requires a modern web browser like Chrome, Firefox, or Safari. Disable ad blockers for the best experience.
+What each does:
+- **Python 3.12** — Backend tools (RAG, CRM, CSV, content gen)
+- **Node** — MCP server bridge (TypeScript)
+- **yt-dlp** — Free YouTube transcript downloader
+- **ffmpeg** — Audio/video processing
 
-</Callout>
+## Step 2 — Install Claude Code
 
-## Create Your Account and Log In
+```bash
+npm install -g @anthropic-ai/claude-code
+claude  # follow auth prompts
+```
 
-Follow these steps to set up your Realtor OS account.
+## Step 3 — Clone the Upstream Repo
 
-<Steps>
-  <Step title="Sign Up" icon="user-plus">
-    Visit `https://dashboard.example.com/signup` and enter your email, name, and password.
-    
-    Verify your email by clicking the link sent to your inbox.
-  </Step>
-  <Step title="Log In" icon="log-in">
-    Go to `https://dashboard.example.com/login`.
-    
-    Enter your credentials and complete two-factor authentication if enabled.
-  </Step>
-  <Step title="Complete Onboarding" icon="check-circle">
-    Follow the dashboard prompts to select your agency size and preferred features.
-  </Step>
-</Steps>
+```bash
+cd ~/
+git clone https://github.com/puzzled-mushroom911/claude-code-real-estate-framework.git real-estate-ai
+cd real-estate-ai
+```
 
-## Initial Dashboard Setup
+## Step 4 — Run Setup Script
 
-Customize your dashboard for efficient property management.
+```bash
+bash scripts/setup.sh
+```
 
-<Steps>
-  <Step title="Set Preferences" icon="settings">
-    Navigate to **Account > Preferences**.
-    
-    Choose your default currency (e.g., USD), time zone, and notification settings.
-  </Step>
-  <Step title="Connect Integrations" icon="link">
-    In **Integrations**, add MLS feeds or email providers.
-    
-    Use the `+ Connect` button for quick setup.
-  </Step>
-</Steps>
+Installs Python deps, builds MCP server (TypeScript → JS), creates manifest registry at `~/.real_estate_ai/`. Takes 2-5 minutes.
 
-## Add Your First Property Listing
+## Step 5 — Configure Agent Profile
 
-List a property via the dashboard or API.
+```bash
+cp config/.env.example config/.env
+```
 
-### Dashboard Method
+Edit `config/agent_profile.yaml`:
 
-1. Click **Listings > New Property**.
-2. Enter details: address, beds (`3`), baths (`2`), price (`$450,000`).
-3. Upload photos and publish.
+```yaml
+agent:
+  name: "Your Name"
+  phone: "(555) 123-4567"
+  email: "you@example.com"
+  brokerage: "Your Brokerage"
+  city: "Your City"
+  state: "TX"
+  youtube_handle: "@yourchannel"
+  booking_link: "https://calendly.com/you"
+```
 
-### API Method
+## Step 6 — Add Optional API Keys
 
-Use the API to add listings programmatically.
+Edit `config/.env`:
 
-<CodeGroup tabs="JavaScript,Python,cURL">
-  ```javascript
-  const response = await fetch('https://api.example.com/v1/properties', {
-    method: 'POST',
-    headers: {
-      'Authorization': 'Bearer YOUR_API_KEY',
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      address: '123 Main St, Anytown, CA 12345',
-      price: 450000,
-      bedrooms: 3,
-      bathrooms: 2
-    })
-  });
-  const property = await response.json();
-  console.log(property.id);
-  ```
-  ```python
-  import requests
+| Key | Purpose | Required? |
+|---|---|---|
+| `CRM_API_KEY` | GoHighLevel CRM integration | Only if using GHL |
+| `CRM_LOCATION_ID` | GHL location | Only if using GHL |
+| `ANTHROPIC_API_KEY` | Enhanced guide generation | Optional |
 
-  response = requests.post(
-    'https://api.example.com/v1/properties',
-    headers={
-      'Authorization': 'Bearer YOUR_API_KEY',
-      'Content-Type': 'application/json'
-    },
-    json={
-      'address': '123 Main St, Anytown, CA 12345',
-      'price': 450000,
-      'bedrooms': 3,
-      'bathrooms': 2
+Core features (RAG, content, marketing) work **without** any API keys.
+
+## Step 7 — Wire Up MCP Server
+
+Add to `~/.mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "real-estate-agent": {
+      "command": "node",
+      "args": ["/Users/YOU/real-estate-ai/mcp_server/dist/index.js"]
     }
-  )
-  property = response.json()
-  print(property['id'])
-  ```
-  ```bash
-  curl -X POST https://api.example.com/v1/properties \
-    -H "Authorization: Bearer YOUR_API_KEY" \
-    -H "Content-Type: application/json" \
-    -d '{
-      "address": "123 Main St, Anytown, CA 12345",
-      "price": 450000,
-      "bedrooms": 3,
-      "bathrooms": 2
-    }'
-  ```
-</CodeGroup>
+  }
+}
+```
 
-<ParamField path="address" param-type="string" required="true">
-  Full property address including city and ZIP.
-</ParamField>
+Replace path with absolute path to your clone.
 
-<ParamField path="price" param-type="number" required="true">
-  Listing price in cents (e.g., `450000` for $450,000).
-</ParamField>
+## Step 8 — Restart Claude Desktop / Code
 
-## Basic Navigation Tips
+After restart, MCP tools appear under `mcp__real-estate-agent__*` namespace. Verify by asking Claude: *"List available MCP tools."*
 
-Switch between views efficiently.
+## Step 9 — First Query (smoke test)
 
-<Tabs>
-  <Tab title="Dashboard" icon="home">
-    Overview of active listings, leads, and performance metrics.
-    
-    Use the search bar for quick property lookup.
-  </Tab>
-  <Tab title="Listings" icon="map-pin">
-    Manage all properties here.
-    
-    Filter by status: Active, Pending, Sold.
-  </Tab>
-  <Tab title="Settings" icon="settings">
-    Account, integrations, and billing.
-    
-    Enable API access under **Developers**.
-  </Tab>
-</Tabs>
+In Claude Code:
 
-## Common First-Time Pitfalls
+```
+Use the rag_list_databases tool.
+```
 
-Avoid these issues to save time.
+If empty list returned, MCP is working. Next: ingest content via `youtube_fetch_videos` or build a knowledge base from PDFs in `knowledge_bases/documents/`.
 
-<Callout kind="alert">
+## Common Issues
 
-- **Missing API Key**: Generate your key in **Settings > Developers** before using API endpoints.
-- **Invalid Property Data**: Ensure price is a number without `$` symbol.
-- **Email Verification**: Check spam folder for signup confirmation.
-- **Browser Cache**: Clear cache if dashboard looks outdated.
+- **MCP not loading** → check Claude Desktop logs at `~/Library/Logs/Claude/`
+- **Python deps fail** → ensure `python@3.12` is on PATH (check `which python3`)
+- **yt-dlp blocked** → update: `brew upgrade yt-dlp`
 
-</Callout>
+Full troubleshooting: Help Center → Troubleshooting (Phase 2 — coming).
 
 ## Next Steps
 
-Explore advanced features.
-
-<Columns cols={2}>
-  <Card title="API Reference" icon="code" href="/authentication">
-    Integrate Realtor OS into your apps with full API docs.
-  </Card>
-  <Card title="Advanced Guides" icon="book-open" href="/guides">
-    Learn property analytics and lead management.
-  </Card>
-  <Card title="Configuration" icon="settings" href="/configuration">
-    Customize workflows and automations.
-  </Card>
-  <Card title="Changelog" icon="git-branch" href="/changelog">
-    Stay updated with latest releases.
-  </Card>
-</Columns>
+- Browse 9 agent prompts (Phase 2 — coming)
+- Review 17 MCP tools (Phase 2 — coming)
+- Learn Brunson / Hormozi / Channel Junkies frameworks (Phase 2 — coming)

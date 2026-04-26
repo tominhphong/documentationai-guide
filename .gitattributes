@@ -1,0 +1,10 @@
+# Override GitHub Linguist language detection
+# Validation scripts are infrastructure, not project content — vendor them.
+# This ensures MDX is detected as primary language even when MDX page count is low (early scaffold phase).
+
+scripts/*.sh linguist-vendored=true
+.github/** linguist-vendored=true
+
+# Explicitly mark MDX as documentation language
+*.mdx linguist-documentation=false
+*.mdx linguist-language=MDX
