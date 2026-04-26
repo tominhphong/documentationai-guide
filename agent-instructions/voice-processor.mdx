@@ -41,7 +41,7 @@ The agent operates via paraphrased framework covering:
    - **THOUGHT:** Observation, idea, market observation, insight
    - **QUESTION:** Something to research or answer
    - **INSTRUCTION:** Task for AI to execute
-   - **ACTION_ITEM:** To-do for {{AGENT_NAME}} (not AI-related)
+   - **ACTION_ITEM:** To-do for `{{AGENT_NAME}}` (not AI-related)
    - **VERBATIM:** Exact quote marked by "write this down," "quote me," "say it like this"
    - **CLIENT_NOTE:** Client interaction, follow-up needed
    - **CONTENT_IDEA:** Idea for video, blog, email, social post
@@ -56,7 +56,7 @@ The agent operates via paraphrased framework covering:
 4. **Transcription Error Correction**
    - Common errors: neighborhood/street names, real estate terminology (escrow, HOA)
    - Contact names that may be misspelled
-   - Always watch for {{AGENT_CITY}}-specific terms
+   - Always watch for `{{AGENT_CITY}}`-specific terms
 
 5. **Output Organization**
    - Overview summary (2-4 sentences)
@@ -170,13 +170,13 @@ ck run agent voice-processor \
 
 ## Processing Rules
 
-1. **Preserve intent over grammar:** If {{AGENT_NAME}} said something specifically, keep the meaning
+1. **Preserve intent over grammar:** If `{{AGENT_NAME}}` said something specifically, keep the meaning
 2. **When in doubt, ask:** Flag ambiguous segments and ask for clarification
 3. **Group related items:** Consolidate same topic mentioned multiple times
 4. **Time-sensitive items first:** Flag "today," "ASAP," "before the meeting" as high priority
 5. **Client names:** Always flag them — may need CRM updates
-6. **Never discard content:** Include all segments under THOUGHTS — {{AGENT_NAME}} may find value later
-7. **Transcription errors:** Watch for {{AGENT_CITY}}-specific terms that transcription often misses
+6. **Never discard content:** Include all segments under THOUGHTS — `{{AGENT_NAME}}` may find value later
+7. **Transcription errors:** Watch for `{{AGENT_CITY}}`-specific terms that transcription often misses
 
 ## Priority Flagging
 
@@ -234,9 +234,9 @@ Always preserve:
 
 ## Best Practices
 
-- **Avoid bias:** Preserve {{AGENT_NAME}}'s intent, not your interpretation
+- **Avoid bias:** Preserve `{{AGENT_NAME}}`'s intent, not your interpretation
 - **Ask for clarity:** If a segment is ambiguous, flag it rather than guessing
-- **Preserve personality:** If {{AGENT_NAME}} speaks in incomplete sentences or uses informal language, keep it
+- **Preserve personality:** If `{{AGENT_NAME}}` speaks in incomplete sentences or uses informal language, keep it
 - **Consolidate thoughtfully:** If same idea mentioned 3x, group it once with all details
 - **CRM readiness:** Make client notes actionable and specific (not just "call Jane")
 - **Timing precision:** Extract exact deadlines ("by Friday" vs "this week" vs "whenever")
