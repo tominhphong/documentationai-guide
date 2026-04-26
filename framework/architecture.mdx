@@ -17,6 +17,7 @@ The framework is organized in 5 architectural layers: Claude Code (user interfac
 ## System Layers
 
 ```mermaid
+%%{init: {'theme':'base', 'themeVariables': {'primaryTextColor':'#0F172A','primaryColor':'#D1FAE5','primaryBorderColor':'#10B981','lineColor':'#475569','secondaryColor':'#FEF3C7','tertiaryColor':'#FCE7F3','fontSize':'15px','fontFamily':'system-ui'}}}%%
 graph TB
     A["Claude Code<br/>(User Interface)"]
     B["MCP Server<br/>(TypeScript)"]
@@ -109,6 +110,7 @@ Optional integrations:
 ## Data Flow Example: Generate Blog from Transcript
 
 ```mermaid
+%%{init: {'theme':'base', 'themeVariables': {'primaryTextColor':'#0F172A','primaryColor':'#D1FAE5','primaryBorderColor':'#10B981','lineColor':'#475569','secondaryColor':'#FEF3C7','tertiaryColor':'#FCE7F3','fontSize':'15px','fontFamily':'system-ui'}}}%%
 sequenceDiagram
     User->>Claude: "Generate a blog post from this transcript"
     Claude->>MCP: Tool request: youtube_to_blog

@@ -184,6 +184,7 @@ This workflow orchestrates the customer-response agent with CRM integration to:
 ## Mermaid Workflow
 
 ```mermaid
+%%{init: {'theme':'base', 'themeVariables': {'primaryTextColor':'#0F172A','primaryColor':'#D1FAE5','primaryBorderColor':'#10B981','lineColor':'#475569','secondaryColor':'#FEF3C7','tertiaryColor':'#FCE7F3','fontSize':'15px','fontFamily':'system-ui'}}}%%
 graph TD
     A["Inbound Inquiry<br/>Email/Form/SMS/Chat"] -->|intake| B["Extract & Structure<br/>Name, Topic, Source"]
     B -->|triage| C["Classify Inquiry Type<br/>+ Priority Level"]
