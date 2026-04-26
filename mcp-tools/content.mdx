@@ -1,0 +1,112 @@
+---
+title: "Content Generation Tools"
+description: "MCP tools for converting transcripts to blog posts and generating email sequences."
+last_reviewed: 2026-04-26
+type: reference
+audience: ai-agent-primary
+use_case: ["content-generation", "blog-publishing", "email-marketing"]
+keywords: [blog-generation, transcript-conversion, email-sequences, content-repurposing]
+---
+
+# Content Generation Tools
+
+The content module wraps Python scripts for converting video transcripts into structured blog posts and generating email marketing sequences from content. Supports multi-channel content repurposing with agent-specific voice and style matching.
+
+> Source: `mcp_server/src/tools/content.ts`
+
+## Tools Overview
+
+| Tool | Purpose | Params | Returns |
+|------|---------|--------|---------|
+| `content_transcript_to_blog` | Convert transcript to blog post | transcript_path, title, agent_name | Structured JSON + markdown blog |
+| `content_generate_emails` | Generate email sequences | source_path, sequence_type, count | Email template collection |
+
+## content_transcript_to_blog
+
+Convert a video transcript into a structured blog post. Extracts key points, organizes content into sections with headings, and outputs both a structured JSON template and a markdown blog post ready for web publishing.
+
+```typescript
+server.tool("content_transcript_to_blog", {
+  transcript_path: string,              // Path to transcript file (.txt or .json)
+  title?: string,                       // Blog title (auto-generated if omitted)
+  agent_name?: string                   // Agent name for voice matching (optional)
+})
+```
+
+**Parameters:**
+- `transcript_path` (required): Local filesystem path to the transcript file. Accepts plain text (`.txt`) or JSON-formatted transcripts.
+- `title` (optional): Blog post title. If omitted, the script generates a title from the transcript content.
+- `agent_name` (optional): Agent name (e.g., "aaron_chand") to match voice and style. Defaults to configured agent if omitted.
+
+**Returns:** JSON structure with sections, key points, callouts, and generated markdown blog post. Includes metadata (date, author, estimated read time).
+
+**Example MCP call:**
+```json
+{
+  "name": "content_transcript_to_blog",
+  "arguments": {
+    "transcript_path": "/transcripts/video_abc123.txt",
+    "title": "How to Choose the Right Neighborhood in Tampa",
+    "agent_name": "aaron_chand"
+  }
+}
+```
+
+**Side effects:**
+- Parses transcript file from disk.
+- Generates structured content (no write to filesystem unless caller saves output).
+- Execution timeout: 180 seconds (3 minutes).
+- Processes filler word removal and transcription normalization (real estate specific: "St. Pete", "HOA", "MLS", etc.).
+
+---
+
+## content_generate_emails
+
+Generate email templates from source content. Creates nurture sequences, follow-ups, drip campaigns, welcome series, or re-engagement campaigns based on video transcripts, blog posts, or guides.
+
+```typescript
+server.tool("content_generate_emails", {
+  source_path: string,                  // Path to content file (transcript, blog, or guide)
+  sequence_type?: string                // Email type: "nurture" | "followup" | "drip" | "welcome" | "reengagement"
+  count?: number                        // Number of emails, 1-20 (default: 5)
+})
+```
+
+**Parameters:**
+- `source_path` (required): Path to the source content file — accepts transcript (`.txt`), blog post (`.md`), or guide (`.json`).
+- `sequence_type` (optional): Type of email sequence to generate:
+  - `nurture`: Long-form nurture sequence for leads (default).
+  - `followup`: Post-interaction follow-up emails.
+  - `drip`: Automated drip campaign over time.
+  - `welcome`: Welcome series for new subscribers.
+  - `reengagement`: Win-back campaign for inactive contacts.
+  Default: `nurture`.
+- `count` (optional): Number of emails to generate; valid range 1-20, default 5.
+
+**Returns:** Collection of email templates with subject lines, body copy, CTA buttons, and preview text. Each email is distinct and non-repetitive.
+
+**Example MCP call:**
+```json
+{
+  "name": "content_generate_emails",
+  "arguments": {
+    "source_path": "/transcripts/relocation_guide_blog.md",
+    "sequence_type": "nurture",
+    "count": 5
+  }
+}
+```
+
+**Side effects:**
+- Reads source content file.
+- Generates email templates using content extraction and structuring.
+- Execution timeout: 180 seconds (3 minutes).
+- No filesystem writes.
+
+---
+
+## Related
+
+- [Python Content Tools](/python-tools/content-tools) — Backend implementation
+- [YouTube Tools](/mcp-tools/youtube) — Produces transcripts via `youtube_fetch_videos`
+- [Guide Tools](/mcp-tools/guide) — Generates relocation guides that can feed into email sequences

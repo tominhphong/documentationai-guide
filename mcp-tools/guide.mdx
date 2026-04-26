@@ -1,0 +1,135 @@
+---
+title: "Relocation Guide Generation Tools"
+description: "MCP tools for generating agent-personalized relocation guides and exporting to Word documents."
+last_reviewed: 2026-04-26
+type: reference
+audience: ai-agent-primary
+use_case: ["guide-generation", "document-export", "personalization"]
+keywords: [relocation-guide, docx-export, personalization, real-estate-content]
+---
+
+# Relocation Guide Generation Tools
+
+The guide module wraps Python scripts for generating agent-personalized relocation guides from RAG knowledge base data and converting them to formatted Word documents. Produces comprehensive neighborhood, market, lifestyle, and school guides tailored to agent voice and branding.
+
+> Source: `mcp_server/src/tools/guide.ts`
+
+## Tools Overview
+
+| Tool | Purpose | Params | Returns |
+|------|---------|--------|---------|
+| `guide_generate` | Generate relocation guide JSON | agent_name, agent_db | Structured guide template |
+| `guide_to_docx` | Convert guide to Word document | guide_path, output_path | Formatted .docx file |
+
+## guide_generate
+
+Generate a relocation guide from RAG knowledge base data for a specific agent. Produces a template-based JSON file with sections on neighborhoods, housing market, lifestyle, schools, local resources, and moving logistics.
+
+```typescript
+server.tool("guide_generate", {
+  agent_name: string,                   // Agent identifier (e.g., "aaron_chand")
+  agent_db: string                      // RAG database name with agent's YouTube/content data
+})
+```
+
+**Parameters:**
+- `agent_name` (required): Agent identifier used for personalization (e.g., "aaron_chand", "maria_santos"). Matches agent configuration and voice profile.
+- `agent_db` (required): Name of the RAG knowledge base containing the agent's YouTube videos, blog posts, or other content. Used to extract agent-specific insights and voice.
+
+**Returns:** JSON guide structure with:
+- Agent branding and signature
+- Guide metadata (creation date, version)
+- Sections: neighborhoods, housing market, lifestyle, schools, transportation, utilities, moving timeline
+- Key insights extracted from agent's content
+- Embedded agent contact and CTA
+
+**Example MCP call:**
+```json
+{
+  "name": "guide_generate",
+  "arguments": {
+    "agent_name": "aaron_chand",
+    "agent_db": "aaron_youtube_kb"
+  }
+}
+```
+
+**Details:**
+- Queries agent's RAG database for insights on neighborhoods, market trends, lifestyle, and schools.
+- Extracts agent-specific talking points and recommendations.
+- Structures content into 8-12 major sections with subsections.
+- Includes agent contact information, branding, and calls-to-action.
+- JSON output designed for CMS integration or downstream Word/PDF conversion.
+
+**Side effects:**
+- Reads from RAG knowledge base on disk.
+- Generates structured JSON (no filesystem write to disk unless caller saves).
+- Execution timeout: 300 seconds (5 minutes).
+- No write operations unless output path specified.
+
+---
+
+## guide_to_docx
+
+Convert a relocation guide JSON file to a formatted Word document (.docx). Applies professional branding, section formatting, page breaks, table of contents, and document styling.
+
+```typescript
+server.tool("guide_to_docx", {
+  guide_path: string,                   // Path to guide JSON file (from guide_generate)
+  output_path?: string                  // Output .docx path (optional; defaults to same dir with .docx ext)
+})
+```
+
+**Parameters:**
+- `guide_path` (required): Path to the JSON guide file produced by `guide_generate`.
+- `output_path` (optional): Custom output path for the .docx file. If omitted, saves to same directory as input JSON with `.docx` extension.
+
+**Returns:** Formatted Word document (.docx) with:
+- Professional header/footer with agent branding
+- Automatic table of contents
+- Styled sections with proper headings (Heading 1, Heading 2)
+- Page breaks between major sections
+- Embedded images (if available in guide)
+- Contact information footer on each section
+
+**Example MCP call:**
+```json
+{
+  "name": "guide_to_docx",
+  "arguments": {
+    "guide_path": "/output/aaron_chand_guide.json",
+    "output_path": "/output/aaron_chand_relocation_guide.docx"
+  }
+}
+```
+
+**Details:**
+- Parses JSON guide structure.
+- Applies Microsoft Word formatting styles (Normal, Heading 1, Heading 2, Emphasis).
+- Generates automatic table of contents from section headings.
+- Adds agent branding header and contact footer.
+- Embeds any images referenced in the JSON guide.
+- File is compatible with Microsoft Word 2007+ and Google Docs.
+
+**Side effects:**
+- Reads JSON guide file from disk.
+- Writes .docx file to specified or default output path.
+- Execution timeout: 180 seconds (3 minutes).
+- Requires python-docx library (included in environment).
+
+---
+
+## Typical Workflow
+
+1. **Generate RAG database:** Use `rag_create_knowledge_base` to index agent's YouTube videos or blog posts.
+2. **Generate guide:** Call `guide_generate` with agent name and RAG database.
+3. **Convert to Word:** Call `guide_to_docx` with the generated JSON.
+4. **Distribute:** Send .docx file to leads, embed in website, or print as collateral.
+
+---
+
+## Related
+
+- [Python Guide Tools](/python-tools/guide-tools) — Backend guide generation and Word export
+- [RAG Query Tools](/mcp-tools/rag) — Powers the knowledge extraction in `guide_generate`
+- [YouTube Tools](/mcp-tools/youtube) — Populates RAG databases with agent content via `youtube_ingest`

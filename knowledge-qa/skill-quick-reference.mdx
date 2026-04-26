@@ -1,0 +1,173 @@
+---
+title: "Skill Quick Reference"
+description: "Channel Performance, CMA Generator, Customer Response skills: purpose, inputs, outputs, triggers."
+last_reviewed: 2026-04-26
+type: reference
+audience: ai-agent-primary
+use_case: ["understand-available-skills", "trigger-skill-when-needed"]
+keywords: [skills, channel-performance, cma-generator, customer-response, reference]
+---
+
+> Source: `.claude/skills/channel-performance.md`, `cma-generator.md`, `customer-response.md`
+
+## channel-performance Skill
+
+**File:** `.claude/skills/channel-performance.md`
+
+**Purpose:** Analyze YouTube channel performance metrics and provide data-driven optimization recommendations for video strategy, thumbnail testing, and content planning.
+
+**When to Use:**
+- Agent wants to understand which topics/formats are driving engagement
+- Planning next 4 weeks of video content
+- Evaluating underperforming videos for relaunch
+- Benchmarking against competitor channels
+
+**Inputs:**
+- Agent's YouTube channel handle (or name)
+- Time range for analysis (30/60/90 days, or all-time)
+- Specific competitor channels to compare against (optional)
+
+**Process:**
+1. Query `youtube_rag` for agent's video metadata and analytics
+2. Query `youtube_channel_junkies` for benchmark data and best practices
+3. Query `competitor_analysis` for top 3–5 competitive channels
+4. Extract performance patterns (view trends, engagement by topic, thumbnail CTR)
+5. Generate 3 priority topics for next content cycle
+6. Suggest title/thumbnail A/B tests
+7. Output 4-week content calendar aligned to Channel Junkies methodology
+
+**Outputs:**
+- Performance summary (3–5 bullet points on channel health)
+- Top performing content (ranked by views, watch time, engagement)
+- Competitive landscape analysis (strengths vs competitors)
+- 3 actionable recommendations (topics, formats, optimization tactics)
+- 4-week content calendar (topic, format, priority per week)
+
+**Related Agents:**
+- youtube-video-pipeline (uses recommendations to plan next video)
+- email-writer (coordinates content announcements)
+
+---
+
+## cma-generator Skill
+
+**File:** `.claude/skills/cma-generator.md`
+
+**Purpose:** Generate professional Comparative Market Analysis (CMA) summaries for client presentations, YouTube content, or lead nurture emails. Combines comps data, market context, and agent's personal analysis.
+
+**When to Use:**
+- Creating CMA for a specific property (client or video)
+- Analyzing market conditions for a neighborhood
+- Building YouTube video outline on "what homes are worth in [area]"
+- Supporting a pricing recommendation in a listing presentation
+
+**Inputs:**
+- Subject property address (or neighborhood/ZIP if general analysis)
+- Comparable sales data (pulled from MLS or knowledge base)
+- Active listing context (current inventory)
+- Intended audience (client vs YouTube vs email)
+
+**Process:**
+1. Query `property_database` for comps and active listings
+2. Query `neighborhood_data` for market conditions, inventory trends, DOM averages
+3. Analyze comparables (select 3–5 best matches by proximity, recency, similarity)
+4. Calculate price per sqft range, median, trend direction
+5. Identify buyer demand signals (days on market trend, inventory levels, seasonality)
+6. Generate 3–5 YouTube talking points (if for content)
+7. Generate professional written summary (if for client)
+
+**Outputs:**
+
+*Client Version:*
+- Subject property summary
+- 3–5 comparable sales (table with price, $/sqft, DOM, date)
+- Suggested price range with confidence level
+- Market trend analysis (buyer's/seller's/balanced)
+- Strategic recommendation (pricing strategy for sellers; offer strategy for buyers)
+
+*YouTube Version:*
+- Same as above, plus:
+- 3–5 talking points agent can reference on camera
+- Visual suggestions (charts, map screenshots, property photos)
+- Hook recommendation (which Channel Junkies pattern fits this topic)
+
+**Related Agents:**
+- cma-generator agent (primary invoker)
+- youtube-video-pipeline (uses CMA for market-analysis videos)
+- customer-response (includes CMA snippet for pricing inquiries)
+
+---
+
+## customer-response Skill
+
+**File:** `.claude/skills/customer-response.md`
+
+**Purpose:** Generate draft responses to buyer/seller inquiries, objections, and follow-ups that match the agent's communication style and are grounded in accurate local data.
+
+**When to Use:**
+- Replying to inbound lead message (SMS, email, web form)
+- Handling objection or price concern from prospect
+- Following up with lead who hasn't responded
+- Answering general neighborhood question
+- Generating nurture email for warm lead
+
+**Inputs:**
+- Inquiry text (the prospect's message)
+- Inquiry type (buyer/seller/objection/general question/follow-up)
+- Priority level (hot/warm/cold)
+
+**Process:**
+1. Classify inquiry (buyer hot/warm/cold, seller, general, objection, follow-up)
+2. Query `conversation_history_rag` for agent's prior response patterns and tone
+3. Query `knowledge_bases` for neighborhood/market facts relevant to inquiry
+4. Query `youtube_rag` for how agent has previously addressed similar topics
+5. Draft response matching agent's typical:
+   - Vocabulary and phrases
+   - Message length (SMS vs email)
+   - Greeting and sign-off style
+   - Level of detail (quick vs thorough)
+6. Include one unexpected value point (insight prospect didn't ask for)
+7. End with soft CTA appropriate to inquiry type
+8. Flag any facts requiring agent verification
+
+**Outputs:**
+- Response draft (SMS or email, ready to send)
+- Classification and priority
+- Tone confidence (high/medium/low match to agent's style)
+- Sources consulted (which RAGs/knowledge bases)
+- Notes for agent (caveats, items needing verification, optional additions)
+
+**Examples:**
+
+*Buyer Inquiry:*
+> "Hi [Name], great question on [topic]. Here's what I'm seeing in the market right now: [data]. The thing most buyers don't realize is [insight]. Want me to pull the last 30 days of sales in your price range and send you a breakdown? Just reply [keyword]. Talk soon, [Agent]."
+
+*Objection:*
+> "I hear that a lot—here's what actually happens: [reframe with data/story]. The buyers I work with typically [pattern observation]. Would it help if I walked you through [solution]? Hit reply and let's talk through it. [Agent]"
+
+*Follow-up (No Response):*
+> "Thought of you when I saw [relevant listing/market data/content]. Attached is [resource]. No pressure—just wanted to make sure you had it. Let me know if any questions. [Agent]"
+
+**Related Agents:**
+- customer-response agent (primary invoker)
+- email-writer (generates longer sequences; customer-response handles single replies)
+- relocation-guide (uses customer-response for inquiry handling)
+
+---
+
+## Skill Chaining Example
+
+A complete workflow using all three skills:
+
+1. **channel-performance** identifies "market comparison videos" as high-performing topic
+2. **cma-generator** creates detailed analysis for [Neighborhood A] vs [Neighborhood B]
+3. **youtube-video-pipeline** uses CMA to outline the video
+4. Video launches; inbound inquiries arrive
+5. **customer-response** drafts replies to prospects who watched the video
+
+Each skill builds on data and outputs from the previous one, demonstrating multi-agent coordination.
+
+## Related
+
+- [tools-catalog](/knowledge-qa/tools-catalog) — tools that skills wrap
+- [glossary](/knowledge-qa/glossary) — skill definition and related concepts

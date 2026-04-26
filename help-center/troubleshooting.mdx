@@ -1,0 +1,479 @@
+---
+title: "Troubleshooting"
+description: "Common errors: MCP server issues, env vars, Python venv, Mintlify build, frontmatter validation."
+last_reviewed: 2026-04-26
+type: reference
+audience: both
+use_case: ["diagnose-setup-errors", "fix-build-failures"]
+keywords: [troubleshooting, errors, debugging, MCP, Python, validation]
+---
+
+## MCP Server Issues
+
+### "MCP Server won't start" or "Cannot find module"
+
+**Symptoms:**
+```
+Error: Cannot find module 'mcp-sdk'
+Error: ENOENT: no such file or directory, open 'index.js'
+```
+
+**Diagnosis:**
+```bash
+npm list mcp-sdk
+ls mcp_server/index.js
+```
+
+**Solutions:**
+
+1. **Reinstall dependencies:**
+   ```bash
+   rm -rf node_modules package-lock.json
+   npm install
+   ```
+
+2. **Check Node version:**
+   ```bash
+   node --version  # Must be 18+
+   npm --version   # Must be 8+
+   ```
+
+3. **Verify MCP server file exists:**
+   ```bash
+   ls -la mcp_server/
+   # Should show: index.js, package.json, lib/
+   ```
+
+4. **If still failing, rebuild:**
+   ```bash
+   npm run build
+   npm run mcp:start
+   ```
+
+---
+
+### "Port 3000 already in use" or "EADDRINUSE"
+
+**Symptoms:**
+```
+Error: listen EADDRINUSE: address already in use :::3000
+```
+
+**Solution Option A — Change port:**
+```bash
+# Edit .env
+MCP_SERVER_PORT=3001
+
+# Restart server
+npm run mcp:start
+```
+
+**Solution Option B — Kill existing process:**
+```bash
+# Find process using port 3000
+lsof -i :3000
+# Kill it by PID
+kill -9 <PID>
+
+# Restart server
+npm run mcp:start
+```
+
+---
+
+### Claude Desktop Doesn't See MCP Tools
+
+**Symptoms:**
+- Tools menu is empty
+- `@mcp_` autocomplete doesn't work
+- Error: "This tool is not available"
+
+**Diagnosis:**
+
+1. **Check MCP server is running:**
+   ```bash
+   curl http://localhost:3000/health
+   # Should return: {"status":"ready"}
+   ```
+
+2. **Check MCP config path:**
+   ```bash
+   # In Claude Desktop Settings → Developer → MCP servers
+   # Verify the command path exists:
+   ls /path/from/config/mcp_server/index.js
+   ```
+
+3. **Check permissions:**
+   ```bash
+   file /path/to/mcp_server/index.js
+   # Should be readable
+   ```
+
+**Solutions:**
+
+1. **Restart Claude Desktop completely:**
+   - Quit Claude (Cmd+Q)
+   - Wait 5 seconds
+   - Reopen Claude
+
+2. **Update MCP config with correct absolute path:**
+   ```bash
+   # Get project path
+   pwd
+   # Copy output and update Claude Desktop settings with full path
+   ```
+
+3. **Re-register MCP server:**
+   - Claude Desktop → Settings → Developer
+   - Remove existing `realtor-os-local` entry
+   - Click "Add MCP server"
+   - Re-enter correct path and command
+
+4. **Check stderr logs:**
+   ```bash
+   # In terminal running mcp:start, look for red error messages
+   # Common: "Cannot read property 'mcp_tools' of undefined"
+   # Solution: Ensure knowledge_bases/ exists and is readable
+   ```
+
+---
+
+## Python Virtual Environment Issues
+
+### "command not found: python3" or "python: No such file"
+
+**Symptoms:**
+```
+zsh: command not found: python3
+-bash: python: command not found
+```
+
+**Solutions:**
+
+1. **Install Python (macOS with Homebrew):**
+   ```bash
+   brew install python@3.9
+   # Verify:
+   python3 --version  # Should show 3.9.x or higher
+   ```
+
+2. **Use system Python (if already installed):**
+   ```bash
+   /usr/bin/python3 --version
+   /usr/bin/python3 -m venv venv
+   ```
+
+3. **Windows users:** Download from [python.org](https://www.python.org/downloads/), ensure "Add Python to PATH" is checked during install.
+
+---
+
+### "ModuleNotFoundError: No module named 'X'" or venv not activated
+
+**Symptoms:**
+```
+ModuleNotFoundError: No module named 'requests'
+ModuleNotFoundError: No module named 'pyyaml'
+```
+
+**Diagnosis:**
+```bash
+# Check if venv is activated
+which python3
+# If it doesn't show /path/to/project/venv/bin/python3, venv is NOT active
+
+# Check installed packages
+pip list | grep requests
+```
+
+**Solutions:**
+
+1. **Activate venv:**
+   ```bash
+   source venv/bin/activate
+   # Prompt should show (venv) prefix
+   ```
+
+2. **Reinstall dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Check requirements.txt exists:**
+   ```bash
+   ls requirements.txt
+   ```
+
+4. **Windows users:**
+   ```bash
+   # Instead of source venv/bin/activate, use:
+   venv\Scripts\activate
+   ```
+
+---
+
+## Environment Variable Issues
+
+### "Cannot read env variable" or undefined config
+
+**Symptoms:**
+```
+Error: process.env.MCP_SERVER_PORT is undefined
+Error: KNOWLEDGE_BASE_PATH not set
+```
+
+**Diagnosis:**
+```bash
+# Check .env file exists
+ls .env
+
+# Check env vars are loaded
+cat .env | grep MCP_SERVER_PORT
+```
+
+**Solutions:**
+
+1. **Create .env from template:**
+   ```bash
+   cp .env.example .env
+   ```
+
+2. **Verify required variables:**
+   ```env
+   # Minimum required:
+   MCP_SERVER_PORT=3000
+   MCP_SERVER_HOST=localhost
+   KNOWLEDGE_BASE_PATH=./knowledge_bases
+   ```
+
+3. **Check for syntax errors in .env:**
+   ```bash
+   # Valid format:
+   # KEY=value
+   # No spaces around =
+   # No quotes needed for simple values
+   
+   # Invalid:
+   # KEY = value  (spaces)
+   # KEY="value"  (quotes cause issues)
+   ```
+
+4. **Restart MCP server after updating .env:**
+   ```bash
+   # Press Ctrl+C in MCP terminal
+   npm run mcp:start
+   ```
+
+---
+
+## Documentation Build Failures
+
+### "Frontmatter validation failed" or "Missing required field"
+
+**Symptoms:**
+```
+FAIL: frontmatter — missing 'description' in file.mdx:1
+Cannot build: frontmatter schema violation
+```
+
+**Diagnosis:**
+```bash
+# Check first 10 lines of file
+head -10 file.mdx
+```
+
+**Solution:**
+
+Ensure every `.mdx` file starts with this YAML block:
+
+```yaml
+---
+title: "Page Title"
+description: "Short summary (50-120 chars)."
+last_reviewed: 2026-04-26
+---
+```
+
+All three fields are required. Optional fields:
+```yaml
+type: reference
+audience: both
+use_case: ["verb-phrase"]
+keywords: [term1, term2]
+```
+
+---
+
+### "MDX parse error" or "Unexpected character"
+
+**Symptoms:**
+```
+MDXParseError: Unexpected character '<'
+MDXParseError: Unexpected character '!'
+```
+
+See [mdx-gotchas](/knowledge-qa/mdx-gotchas) for full guide. Quick fixes:
+
+| Error | Likely Cause | Fix |
+|-------|--------------|-----|
+| Unexpected `<` | `<20` or `<50` in text | Replace with `&lt;20` or rephrase |
+| Unexpected `!` | HTML comment `<!-- -->` | Replace with `{/* */}` |
+| Tag mismatch | Unclosed `<Callout>` | Add `</Callout>` |
+| Emphasis not closed | `*` in SVG | Escape as `&#42;` |
+
+**Validation before commit:**
+```bash
+bash scripts/pre-commit-check.sh file.mdx
+```
+
+---
+
+### "Link resolves to 404" or "relative path error"
+
+**Symptoms:**
+```
+Link check FAIL: help-center/setup-guide → ../frameworks/brunson not found
+```
+
+**Solution:**
+
+Use absolute paths from wiki root, no `.mdx` extension:
+
+```markdown
+# WRONG:
+[Setup](./setup-guide.mdx)
+[Framework](../../frameworks/brunson-daily-seinfeld.mdx)
+
+# CORRECT:
+[Setup](/help-center/setup-guide)
+[Framework](/frameworks/brunson-daily-seinfeld)
+```
+
+**Verify link target exists:**
+```bash
+ls docs/frameworks/brunson-daily-seinfeld.mdx
+```
+
+---
+
+## Deployment & CI Issues
+
+### "CI build failed" or "GitHub Actions error"
+
+**Symptoms:**
+- PR shows red X on `mdx-validate` check
+- Error message in GitHub Actions output
+
+**Solution:**
+
+1. **Download GitHub Actions logs:**
+   - Go to PR → Checks tab → `mdx-validate`
+   - Expand failed job
+   - Copy error message
+
+2. **Run same check locally:**
+   ```bash
+   # Syntax check
+   bash scripts/pre-commit-check.sh ./
+   
+   # Link check
+   bash scripts/check-links.sh ./
+   
+   # Frontmatter check
+   bash scripts/check-frontmatter.sh ./
+   ```
+
+3. **Fix errors and push:**
+   ```bash
+   git add .
+   git commit -m "fix: mdx syntax errors"
+   git push
+   ```
+
+---
+
+### "Build hangs" or "timeout during deploy"
+
+**Symptoms:**
+- GitHub Actions job runs >15 minutes
+- Timeout error after waiting
+
+**Likely Cause:**
+- Large file or slow link checking
+- Knowledge base indexing taking too long
+
+**Solution:**
+
+1. **Check file sizes:**
+   ```bash
+   find . -name "*.mdx" -exec wc -l {} \; | sort -rn | head
+   # Files >500 lines should be split
+   ```
+
+2. **Run CI checks locally first:**
+   ```bash
+   time bash scripts/pre-commit-check.sh ./
+   # Should complete in <10 seconds
+   ```
+
+3. **If knowledge base indexing is slow:**
+   - Check `KNOWLEDGE_BASE_PATH` points to correct location
+   - Ensure knowledge_bases/ directory is not corrupted
+   - Restart MCP server: `npm run mcp:start`
+
+---
+
+## When All Else Fails
+
+### Diagnostic checklist:
+
+```bash
+# 1. Check project structure
+ls -la | grep -E "(\.env|\.claude|knowledge_bases|mcp_server|scripts)"
+
+# 2. Check Node/Python versions
+node --version  # 18+
+python3 --version  # 3.9+
+npm --version  # 8+
+
+# 3. Check venv
+source venv/bin/activate
+which python3  # Should show venv path
+
+# 4. Check MCP server
+curl http://localhost:3000/health
+
+# 5. Check .env
+cat .env | head -5
+
+# 6. Test validation
+bash scripts/pre-commit-check.sh frameworks/brunson-daily-seinfeld.mdx
+
+# 7. Check file permissions
+ls -la .env mcp_server/index.js
+```
+
+### Still stuck?
+
+1. **Search existing issues:** GitHub Discussions or repo Issues tab
+2. **Check logs:** Terminal running MCP server, GitHub Actions output
+3. **Report with context:**
+   ```bash
+   # Create diagnostic bundle
+   echo "=== VERSIONS ===" > diagnostic.txt
+   node --version >> diagnostic.txt
+   python3 --version >> diagnostic.txt
+   
+   echo "=== ERROR OUTPUT ===" >> diagnostic.txt
+   # Copy error message here
+   
+   echo "=== ENVIRONMENT ===" >> diagnostic.txt
+   cat .env >> diagnostic.txt
+   
+   # Share diagnostic.txt (remove any secrets first!)
+   ```
+
+## Related
+
+- [setup-guide](/help-center/setup-guide) — installation steps
+- [mdx-gotchas](/knowledge-qa/mdx-gotchas) — MDX-specific errors
+- [faq](/help-center/faq) — frequently asked questions

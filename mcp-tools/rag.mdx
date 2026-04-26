@@ -1,0 +1,161 @@
+---
+title: "RAG Query & Knowledge Base Tools"
+description: "MCP tools for semantic search, multi-database queries, knowledge base creation, and database management."
+last_reviewed: 2026-04-26
+type: reference
+audience: ai-agent-primary
+use_case: ["semantic-search", "knowledge-retrieval", "database-management"]
+keywords: [rag, chroma, vector-search, knowledge-base, embeddings]
+---
+
+# RAG Query & Knowledge Base Tools
+
+The RAG module wraps Python scripts for knowledge base querying, multi-database searches, knowledge base creation, and database administration. It uses ChromaDB with semantic embeddings for natural-language information retrieval.
+
+> Source: `mcp_server/src/tools/rag.ts`
+
+## Tools Overview
+
+| Tool | Purpose | Params | Returns |
+|------|---------|--------|---------|
+| `rag_query` | Single-database semantic search | query, database, k | Ranked list of relevant chunks |
+| `rag_query_multi` | Cross-database search | query, databases[], k | Merged results from multiple sources |
+| `rag_list_databases` | List registered databases | — | Database inventory with metadata |
+| `rag_create_knowledge_base` | Index documents into new KB | source_dir, name, chunk_size | Creation status and summary |
+
+## rag_query
+
+Query a single RAG knowledge base with semantic search. Returns the top-k most relevant document chunks ranked by relevance score.
+
+```typescript
+server.tool("rag_query", {
+  query: string,                        // Natural language question
+  database?: string,                    // KB name (defaults to config.default_rag_database)
+  k?: number                            // Result count, 1-50 (default: 5)
+})
+```
+
+**Parameters:**
+- `query` (required): Natural-language question or search term (e.g., "best neighborhoods for families")
+- `database` (optional): Name of the knowledge base to query. Falls back to agent's default database if omitted.
+- `k` (optional): Number of results to return; valid range 1-50, default 5.
+
+**Returns:** Text-formatted results with ranking, relevance scores (0-1), source metadata, and content chunks.
+
+**Example MCP call:**
+```json
+{
+  "name": "rag_query",
+  "arguments": {
+    "query": "What neighborhoods are best for families?",
+    "database": "my_agent_kb",
+    "k": 10
+  }
+}
+```
+
+**Side effects:** Reads from ChromaDB persistent storage. No write operations. Touches the HuggingFace embeddings model (sentence-transformers/all-MiniLM-L6-v2).
+
+---
+
+## rag_query_multi
+
+Query multiple RAG knowledge bases simultaneously and return merged results. Useful for cross-referencing information across databases (e.g., comparing agent content with strategy guides).
+
+```typescript
+server.tool("rag_query_multi", {
+  query: string,                        // Natural language question
+  databases: string[],                  // Array of KB names (min length 1)
+  k?: number                            // Results per database, 1-50 (default: 5)
+})
+```
+
+**Parameters:**
+- `query` (required): Search term or question to apply across all databases.
+- `databases` (required): Array of knowledge base names to query in parallel; minimum one database.
+- `k` (optional): Number of results per database; valid range 1-50, default 5.
+
+**Returns:** Merged text output with results grouped by database, each with relevance scores and source attribution.
+
+**Example MCP call:**
+```json
+{
+  "name": "rag_query_multi",
+  "arguments": {
+    "query": "market trends in Tampa",
+    "databases": ["agent_aaron_content", "market_research_kb", "youtube_strategy"],
+    "k": 5
+  }
+}
+```
+
+**Side effects:** Executes parallel queries to multiple ChromaDB instances. Read-only. Network latency increases with database count.
+
+---
+
+## rag_list_databases
+
+List all registered RAG knowledge base databases with metadata (document count, last updated timestamp, description).
+
+```typescript
+server.tool("rag_list_databases", {
+  // No parameters
+})
+```
+
+**Parameters:** None.
+
+**Returns:** Formatted table of databases with metadata: name, document count, last updated, and optional description.
+
+**Example MCP call:**
+```json
+{
+  "name": "rag_list_databases",
+  "arguments": {}
+}
+```
+
+**Side effects:** Reads ChromaDB directory structure and collection metadata. No write operations.
+
+---
+
+## rag_create_knowledge_base
+
+Create a new RAG knowledge base by indexing documents from a source directory. Automatically chunks documents and creates embeddings for semantic search. Supports text, markdown, PDF, and transcript files.
+
+```typescript
+server.tool("rag_create_knowledge_base", {
+  source_dir: string,                   // Path to documents directory
+  name: string,                         // Name for the KB
+  chunk_size?: number                   // 100-10000 chars (default: 1000)
+})
+```
+
+**Parameters:**
+- `source_dir` (required): Path to directory containing documents to index (local filesystem path).
+- `name` (required): Display name for the knowledge base (alphanumeric + underscore).
+- `chunk_size` (optional): Document chunk size in characters for splitting; valid range 100-10000, default 1000. Smaller chunks = finer granularity; larger chunks = more context per result.
+
+**Returns:** Creation summary including document count, total chunks created, chunk statistics, and any parsing errors.
+
+**Example MCP call:**
+```json
+{
+  "name": "rag_create_knowledge_base",
+  "arguments": {
+    "source_dir": "/data/youtube_transcripts/aaron_chand_channel",
+    "name": "aaron_youtube_kb",
+    "chunk_size": 1500
+  }
+}
+```
+
+**Side effects:** Creates persistent ChromaDB storage on disk. Calls HuggingFace embeddings API for all document chunks. Execution timeout: 300 seconds (5 minutes). High CPU usage during indexing.
+
+---
+
+## Related
+
+- [Python RAG Tools](/python-tools/rag-tools) — Backend implementation
+- [YouTube Tools](/mcp-tools/youtube) — Feeds transcripts into RAG via `youtube_ingest`
+- [CSV Tools](/mcp-tools/csv) — Imports conversation data via `csv_import_conversations`

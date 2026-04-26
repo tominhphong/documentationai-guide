@@ -1,0 +1,86 @@
+---
+title: "Glossary"
+description: "Key terms used across the realtor-os-wiki: MCP, RAG, agents, skills, frontmatter, MDX."
+last_reviewed: 2026-04-26
+type: reference
+audience: both
+use_case: ["understand-terminology", "resolve-definition-questions"]
+keywords: [glossary, definitions, terminology, MCP, RAG, agent, skill, MDX]
+---
+
+## Agent
+
+An AI assistant spawned to complete a specific task or role within the realtor-os framework. Examples: email-writer agent (drafts client sequences), youtube-video-pipeline agent (generates video outlines), cma-generator agent (comparative market analyses). Each agent has a defined scope, access to specific knowledge bases, and output format. See [skill-quick-reference](/knowledge-qa/skill-quick-reference) for upstream skills.
+
+## AS-IS Docs
+
+Documentation that reflects the current state of the system without editorializing or prescribing future changes. AS-IS docs are the source of truth; they are updated immediately when code/behavior changes. Contrasts with aspirational docs ("this should be how it works"). See [project overview](/framework/overview) for philosophy.
+
+## CMA (Comparative Market Analysis)
+
+A real estate market analysis comparing a subject property against recent sales and active listings in the same area. Used to establish pricing strategy or validate offers. The cma-generator skill automates CMA creation for video content and client presentations.
+
+## Curiosity Gap
+
+A storytelling technique where you open a question but withhold the answer, compelling the audience to keep consuming content to close the gap. Used in YouTube hooks, email subject lines, and blog headlines. See [channel-junkies-hooks](/frameworks/channel-junkies-hooks).
+
+## Dream Outcome
+
+In Alex Hormozi's Value Equation, the ultimate result a client wants (not your service, but the life outcome). Example: not "real estate consultation" but "moving to [neighborhood] without regret." See [hormozi-value-equation](/frameworks/hormozi-value-equation).
+
+## File Ownership
+
+A CODEOWNERS convention enforcing which team member can edit which documentation files. Prevents simultaneous edits on the same file and reduces merge conflicts. Win 2 owns framework pages, Win 3 owns workflows, Win 4 owns help-center and knowledge-qa. See blueprint for full assignment.
+
+## Frontmatter
+
+YAML metadata block at the top of every MDX file (between `---` markers) containing required fields: title, description, last_reviewed, and optional fields: type, audience, use_case, keywords. Example:
+
+```yaml
+---
+title: "Page Title"
+description: "50-120 character summary."
+last_reviewed: 2026-04-26
+type: reference
+---
+```
+
+## Knowledge Base (RAG)
+
+A indexed collection of documents (markdown files, transcripts, conversation history) that agents can query to retrieve relevant context. The realtor-os framework has knowledge bases for: local market data, agent communication history, video transcripts, competitor analysis, and neighborhood profiles. RAG = Retrieval-Augmented Generation.
+
+## Last Reviewed
+
+Date field in frontmatter (YYYY-MM-DD) indicating when the page content was last verified against the codebase or live system. Pages unreviewed >90 days are flagged as stale by CI validation. Agents update this date whenever they modify content.
+
+## MDX
+
+Markdown + JSX hybrid format for documentation pages. Allows embedding React components (`<Callout>`, `<Steps>`, `<Tabs>`) within markdown. MDX v3 has strict parsing rules; see [mdx-gotchas](/knowledge-qa/mdx-gotchas) for common errors.
+
+## MCP (Model Context Protocol)
+
+A standardized interface for Claude to access external tools, knowledge bases, and services. The realtor-os framework exposes its documentation via an MCP endpoint, allowing agents to search and reference pages without manual copy-paste.
+
+## Paraphrase Rule
+
+Documentation convention for frameworks pages: summarize concepts in your own words with at most one short quote (≤15 words) per source, properly attributed. Never reproduce full-text from copyrighted books. See [brunson-daily-seinfeld](/frameworks/brunson-daily-seinfeld) for example.
+
+## RAG (see Knowledge Base)
+
+Retrieval-Augmented Generation. The technique of indexing external documents and allowing an AI model to search and cite them during generation. Powers all agent knowledge queries in the realtor-os framework.
+
+## Skill
+
+A reusable, documented workflow that an agent can invoke to accomplish a specific task. Examples: channel-performance (analyze YouTube metrics), cma-generator (generate market analyses), customer-response (draft client messages). Skills live in `.claude/skills/` with purpose, inputs, outputs, and trigger conditions documented. See [skill-quick-reference](/knowledge-qa/skill-quick-reference).
+
+## Soft CTA (Call-to-Action)
+
+A low-pressure invitation for the audience to respond or engage. Examples: "Hit reply if you want the breakdown" or "Want me to send you a guide?" Contrasts with hard CTAs ("Schedule now" or "Buy today"). Soft CTAs generate higher-quality leads with less friction. See [brunson-daily-seinfeld](/frameworks/brunson-daily-seinfeld).
+
+## Type (Frontmatter)
+
+Optional field in frontmatter specifying the page's primary purpose. Valid values: `overview` (big picture), `reference` (lookup/definition), `workflow` (procedure), `example` (case study), `decision` (decision log), `changelog` (version history). Used for navigation and content classification.
+
+## Use Case (Frontmatter)
+
+Optional array field in frontmatter listing what readers will *do* with this page, in kebab-case verb phrases. Examples: `["understand-system-architecture", "set-up-mcp-server"]`. Helps readers and agents quickly assess relevance. 1–3 items per page.

@@ -1,0 +1,186 @@
+---
+title: "Python CRM Tools"
+description: "Backend Python modules for CRM API client and configuration management."
+last_reviewed: 2026-04-26
+type: reference
+audience: ai-agent-primary
+use_case: ["contact-management", "crm-integration", "api-client"]
+keywords: [crm, gohighlevel, rest-api, contacts, messaging]
+---
+
+# Python CRM Tools
+
+Backend Python modules implementing a generic CRM API client with retry logic and configuration management. Works with GoHighLevel or similar REST API CRM platforms.
+
+> Source: `tools/crm_tools/`
+
+## Module Overview
+
+| Module | Purpose |
+|--------|---------|
+| `crm_client.py` | Generic CRM REST API client with retry logic |
+| `crm_config.py` | Configuration management (credentials, endpoints) |
+
+## crm_client.py
+
+Generic CRM API client with automatic retry logic, structured error handling, and support for contacts, conversations, opportunities, and messaging operations.
+
+**Public Classes:**
+
+| Class | Purpose |
+|-------|---------|
+| `CRMClient` | Main REST API client |
+
+**CRMClient Methods:**
+
+| Method | Params | Returns | Notes |
+|--------|--------|---------|-------|
+| `search_contacts()` | query: str, limit: int | List[Dict] | Search by name, email, phone, tag |
+| `get_contact()` | contact_id: str | Dict | Fetch single contact details |
+| `send_message()` | contact_id: str, message: str, msg_type: str | Dict | Send SMS or email |
+| `get_conversations()` | contact_id: str | List[Dict] | Retrieve message thread |
+| `search_deals()` | query: str, limit: int | List[Dict] | Search opportunities/deals |
+
+**Dependencies:**
+- `requests` — HTTP client with retry logic
+- `crm_config.CRMConfig` — Configuration loader
+
+**Environment Variables:**
+- `CRM_API_KEY` — API key / Bearer token (required)
+- `CRM_API_ENDPOINT` — API base URL (optional, defaults to GoHighLevel)
+- `CRM_LOCATION_ID` — Account/location scope ID (optional)
+- `CRM_REQUEST_TIMEOUT` — Request timeout in seconds (optional, default: 30)
+
+**Example:**
+```python
+from crm_client import CRMClient
+
+# Initialize client (reads credentials from CRMConfig)
+client = CRMClient()
+
+# Search contacts
+contacts = client.search_contacts("John Smith", limit=5)
+for contact in contacts:
+    print(f"{contact['name']} — {contact['email']}")
+
+# Send message
+response = client.send_message(
+    contact_id="contact_abc123",
+    message="Hi John, we have a great property for you!",
+    msg_type="sms"
+)
+
+# Get conversation history
+thread = client.get_conversations("contact_abc123")
+for msg in thread:
+    print(f"{msg['timestamp']} {msg['sender']}: {msg['content']}")
+```
+
+**CLI Usage:**
+```bash
+python3 crm_client.py search "John Smith"
+python3 crm_client.py get-contact abc123
+python3 crm_client.py send-message contact_abc123 "Hello!"
+python3 crm_client.py conversations contact_abc123
+python3 crm_client.py search-deals "New lead"
+```
+
+**Configuration:**
+- **Endpoint:** Defaults to GoHighLevel API URL
+- **Authentication:** Bearer token in Authorization header
+- **Headers:** Content-Type: application/json, Version: 2021-07-28
+- **Retry Logic:** 3 retries with 2-second delay between attempts
+- **Timeout:** 30 seconds per request (configurable)
+
+**Error Handling:**
+- Automatic retry on transient failures (5xx, timeout)
+- Detailed error messages with HTTP status codes
+- Graceful degradation on partial failures
+
+---
+
+## crm_config.py
+
+Configuration management for CRM credentials and connection parameters. Reads from file, environment variables, or interactive setup.
+
+**Public Classes:**
+
+| Class | Purpose |
+|-------|---------|
+| `CRMConfig` | Loads and manages CRM configuration |
+
+**CRMConfig Properties:**
+
+| Property | Type | Source | Default |
+|----------|------|--------|---------|
+| `endpoint` | str | `CRM_API_ENDPOINT` env var | GoHighLevel URL |
+| `api_key` | str | `CRM_API_KEY` env var | (required) |
+| `location_id` | str | `CRM_LOCATION_ID` env var | (optional) |
+| `timeout` | int | `CRM_REQUEST_TIMEOUT` env var | 30 seconds |
+| `default_limit` | int | Config file | 10 |
+
+**Example:**
+```python
+from crm_config import CRMConfig
+
+config = CRMConfig()
+print(f"Endpoint: {config.endpoint}")
+print(f"API Key: {config.api_key[:10]}...")  # Show first 10 chars
+```
+
+**CLI Setup:**
+```bash
+python3 crm_config.py --setup
+# Interactive prompts for:
+# - CRM API endpoint
+# - API key
+# - Location ID
+# - Request timeout
+```
+
+**Environment-Based Configuration:**
+```bash
+export CRM_API_KEY="your_api_key"
+export CRM_API_ENDPOINT="https://api.gohighlevel.com"
+export CRM_LOCATION_ID="location_abc123"
+export CRM_REQUEST_TIMEOUT=30
+
+python3 crm_client.py search "query"
+```
+
+**Configuration File (optional):**
+Located at `~/.crm/config.json` or `.crm.json` in project root:
+```json
+{
+  "endpoint": "https://api.gohighlevel.com",
+  "location_id": "location_abc123",
+  "default_limit": 10
+}
+```
+
+---
+
+## API Details
+
+**Supported CRM Platforms:**
+- GoHighLevel (primary)
+- Any REST API with Bearer token authentication
+
+**Request Headers:**
+```
+Authorization: Bearer {api_key}
+Content-Type: application/json
+Version: 2021-07-28
+```
+
+**Retry Policy:**
+- Max retries: 3
+- Retry delay: 2 seconds
+- Retryable status codes: 408, 429, 500, 502, 503, 504
+
+---
+
+## Related
+
+- [CRM MCP Tools](/mcp-tools/crm) — MCP server wrappers
+- [CSV Tools](/python-tools/csv-tools) — Bulk contact import

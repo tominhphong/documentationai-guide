@@ -1,0 +1,126 @@
+---
+title: "CSV Processing Tools"
+description: "MCP tools for cleaning contact CSVs and importing conversation data to RAG."
+last_reviewed: 2026-04-26
+type: reference
+audience: ai-agent-primary
+use_case: ["data-cleaning", "contact-import", "csv-validation"]
+keywords: [csv, data-cleaning, deduplication, validation, contact-import]
+---
+
+# CSV Processing Tools
+
+The CSV module wraps Python scripts for cleaning and validating contact CSV files and importing conversation data into RAG knowledge bases. Handles deduplication, format validation, and normalization for CRM-ready contact lists.
+
+> Source: `mcp_server/src/tools/csv.ts`
+
+## Tools Overview
+
+| Tool | Purpose | Params | Returns |
+|------|---------|--------|---------|
+| `csv_process_contacts` | Clean & validate contact CSV | input_path, dedupe, validate | Cleaned CSV file + report |
+| `csv_import_conversations` | Import CSV data to RAG | csv_path, db_name | Import summary |
+
+## csv_process_contacts
+
+Clean and validate a contact CSV file. Can deduplicate records, validate email and phone formats, normalize fields, and output a cleaned CSV ready for CRM import.
+
+```typescript
+server.tool("csv_process_contacts", {
+  input_path: string,                   // Path to input CSV file
+  dedupe?: boolean,                     // Remove duplicates by email/phone (default: true)
+  validate?: boolean                    // Validate email/phone formats (default: true)
+})
+```
+
+**Parameters:**
+- `input_path` (required): Local filesystem path to the input CSV file.
+- `dedupe` (optional): Enable deduplication by email or phone number. Default: `true`. Set to `false` to skip deduplication.
+- `validate` (optional): Enable format validation for email and phone fields. Default: `true`. Set to `false` to skip validation.
+
+**Returns:** Cleaned CSV file saved to output directory + processing report with:
+- Records processed / kept / removed
+- Deduplication statistics
+- Validation errors and warnings
+- Normalized field counts
+
+**Example MCP call:**
+```json
+{
+  "name": "csv_process_contacts",
+  "arguments": {
+    "input_path": "/data/leads.csv",
+    "dedupe": true,
+    "validate": true
+  }
+}
+```
+
+**Details:**
+- **Column normalization:** Maps common aliases (firstname → first_name, email_address → email, etc.) to canonical names.
+- **Phone normalization:** Strips non-digits, adds US country code (1), validates 10-digit format.
+- **Email validation:** Checks format against RFC pattern; filters invalid addresses.
+- **Deduplication:** Merges records with identical email or phone, keeping the most complete record.
+- **Output:** Saves cleaned CSV to same directory with `_cleaned` suffix (e.g., leads_cleaned.csv).
+
+**Side effects:**
+- Reads input CSV file.
+- Writes cleaned CSV output file to same directory.
+- Execution timeout: 180 seconds (3 minutes).
+- High I/O for large files (10k+ rows).
+
+---
+
+## csv_import_conversations
+
+Import conversation data from a CSV file into a RAG knowledge base. Each row becomes a searchable document for later retrieval via `rag_query` or `rag_query_multi`.
+
+```typescript
+server.tool("csv_import_conversations", {
+  csv_path: string,                     // Path to CSV file with conversation data
+  db_name: string                       // Name of RAG database to import into
+})
+```
+
+**Parameters:**
+- `csv_path` (required): Path to CSV file containing conversation data. Expected columns: contact_name, contact_email, conversation_date, message_content, context.
+- `db_name` (required): Name of the RAG knowledge base to create or append to.
+
+**Returns:** Import summary with:
+- Records processed
+- Documents created (after chunking)
+- Total embeddings generated
+- Any parsing or embedding errors
+
+**Example MCP call:**
+```json
+{
+  "name": "csv_import_conversations",
+  "arguments": {
+    "csv_path": "/data/past_conversations.csv",
+    "db_name": "conversation_history_kb"
+  }
+}
+```
+
+**Details:**
+- Reads CSV and treats each row as a conversation document.
+- Chunks large conversation content for semantic search granularity.
+- Creates embeddings for all chunks via HuggingFace model.
+- Preserves metadata: contact name, email, date, context.
+- Supports custom CSV column mappings via configuration.
+
+**Side effects:**
+- Reads CSV file from disk.
+- Creates or updates ChromaDB knowledge base on disk.
+- Calls HuggingFace embeddings API for all conversation chunks.
+- Execution timeout: 300 seconds (5 minutes).
+- High CPU/network usage during embedding generation.
+
+---
+
+## Related
+
+- [Python CSV Tools](/python-tools/csv-tools) — Backend CSV processing implementation
+- [RAG Query Tools](/mcp-tools/rag) — Queries the imported conversation database
+- [CRM Tools](/mcp-tools/crm) — `crm_search_contacts` can export results to CSV for cleaning

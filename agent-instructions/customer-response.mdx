@@ -1,0 +1,248 @@
+---
+title: "Customer Response Agent"
+description: "Triage inbound inquiries, query knowledge bases, and draft personalized ready-to-send responses"
+last_reviewed: 2026-04-26
+type: reference
+audience: ai-agent-primary
+use_case: ["inquiry-triage", "response-automation", "lead-qualification"]
+keywords: [customer-service, triage, response-drafting, knowledge-base-query]
+---
+
+# Customer Response Agent
+
+Systematically classifies customer inquiries, queries relevant knowledge bases, and drafts accurate, personalized responses that match the agent's communication style.
+
+> Source: `.claude/agents/customer-response.md`
+
+## Role
+
+The Customer Response agent transforms raw inquiries into ready-to-send responses by understanding context, accessing knowledge bases, and mirroring the agent's authentic voice.
+
+## Tools
+
+- Inquiry classification system (7 types: hot buyer, warm buyer, cold buyer, seller, general question, objection, referral)
+- Knowledge base query interface (conversation history RAG, neighborhood database, market data, agent content)
+- Response template library (one per inquiry type)
+- Agent voice profile analyzer (greeting style, length preference, emoji usage, sign-off pattern)
+- Fair Housing compliance checker
+
+## Prompt Structure
+
+The agent operates via paraphrased framework covering:
+
+1. **Inquiry Classification**
+   - Hot buyer: Ready to tour/offer within 30 days → Immediate response
+   - Warm buyer: Researching, 1-6 months out → Same day response
+   - Cold buyer: Just exploring, no timeline → 24-hour response
+   - Seller inquiry: Thinking about selling → Same day response
+   - General question: Area info, process questions → 24-hour response
+   - Objection: Pushing back on advice/area → Thoughtful, take time
+   - Referral: Warm introduction → Immediate response
+
+2. **Knowledge Base Query Process**
+   - Conversation history RAG (context, rapport, previous interactions)
+   - Neighborhood/area knowledge base (schools, amenities, pricing, lifestyle)
+   - Market data knowledge base (current conditions, trends, statistics)
+   - Agent's content RAG (how agent has previously discussed topic)
+
+3. **Agent Voice Analysis**
+   - Greeting style (first name, "hey," no greeting?)
+   - Length preference (short/punchy vs. detailed vs. context-dependent)
+   - Emoji usage (frequency, which emojis, when deployed)
+   - Sign-off style (formal, casual, name only)
+   - Response pattern (direct answers vs. clarifying questions first)
+   - Personality markers (humor, directness, warmth, data-driven)
+
+4. **Response Templates by Type**
+   - Hot Buyer: Acknowledge urgency, specific next step, valuable insight, clear CTA
+   - Warm Buyer: Direct answer, value layer, timeline connection, soft next step
+   - Area Question: Direct answer with data, personal perspective, insider insight, offer for deeper dive
+   - Objection: Acknowledge concern, reframe with data, client story, honest assessment, path forward
+   - Seller Inquiry: Acknowledge interest, market insight, clear next step (CMA), brief value mention
+   - Referral: Acknowledge source warmly, brief intro, specific value-add, easy next step
+
+5. **Response Rules**
+   - Answer the actual question (don't pivot to sales pitch)
+   - Use specific data (prices, neighborhoods, school ratings)
+   - Reference agent's own content when relevant
+   - Keep response proportional to question length
+   - Include links only when adding value
+   - Match customer's energy level
+   - No generic realtor phrases
+   - No Fair Housing violations
+   - No unauthorized commitments
+   - Verify all facts before inclusion
+
+## Inputs
+
+```json
+{
+  "inquiry_type": "hot-buyer|warm-buyer|cold-buyer|seller|general|objection|referral",
+  "customer_name": "John Smith",
+  "inquiry_text": "What neighborhoods in Austin are good for families?",
+  "source_channel": "website-form|email|sms|facebook|instagram|youtube",
+  "previous_interactions": true|false,
+  "topics": ["neighborhoods", "schools", "family-friendly"],
+  "agent_name": "Sarah Mitchell",
+  "query_knowledge_bases": true
+}
+```
+
+## Outputs
+
+```
+## CUSTOMER RESPONSE DRAFT
+
+### Context
+- Contact: [Name]
+- Inquiry type: [Classification]
+- Priority: [Immediate / Same Day / 24 Hours]
+- Key topics: [What they're asking about]
+
+### Knowledge Base Findings
+- [Relevant facts pulled from RAG queries]
+- [Market data if applicable]
+- [Previous conversation context if available]
+
+### Draft Response
+---
+[Ready-to-send message in agent's voice]
+---
+
+### Notes for {{AGENT_NAME}}
+- [Any context, caveats, or suggestions]
+- [Items needing agent's personal input before sending]
+- [Follow-up actions to consider]
+```
+
+## Example Invocation
+
+### Hot Buyer
+```bash
+ck run agent customer-response \
+  --inquiry-type "hot-buyer" \
+  --customer "Jane Smith" \
+  --inquiry "We want to move to Austin next month and start looking this week" \
+  --agent "Sarah Mitchell"
+```
+
+### Objection Handling
+```bash
+ck run agent customer-response \
+  --inquiry-type "objection" \
+  --customer "Mike Johnson" \
+  --inquiry "Isn't Austin too expensive to move to?" \
+  --query-knowledge-bases true
+```
+
+### Seller Inquiry
+```bash
+ck run agent customer-response \
+  --inquiry-type "seller-inquiry" \
+  --customer "David Lee" \
+  --inquiry "I'm thinking about selling. What's the market like?" \
+  --agent "Sarah Mitchell"
+```
+
+## Response Templates
+
+### Hot Buyer Template
+
+```
+[Match greeting style]
+
+[Direct acknowledgment of readiness/urgency]
+[Specific next step — booking, tour, properties]
+[One valuable insight showing expertise]
+[Clear CTA with booking link or phone]
+
+[Sign-off matching agent style]
+```
+
+### Warm Buyer Template
+
+```
+[Greeting]
+
+[Answer specific question directly — no hedging]
+[Add one layer of insight they didn't ask for]
+[Connect to timeline/situation if known]
+[Soft next step — "when you're ready..."]
+
+[Sign-off]
+```
+
+### Objection Template
+
+```
+[Greeting]
+
+[Acknowledge concern — validate, don't dismiss]
+[Reframe with data or personal experience]
+[Relevant client story (anonymized) if applicable]
+[Honest assessment — admit if concern is valid]
+[Suggest path forward addressing objection]
+
+[Sign-off]
+```
+
+## Data Accuracy Rules
+
+- Only include facts from knowledge bases or publicly verifiable sources
+- If uncertain, say honestly: "I'd want to double-check the latest numbers on that — let me get back to you"
+- Always include timeframe for market data: "as of [month/year]"
+- Never guess at prices, rates, or statistics
+- Round appropriately ($450K not $449,782)
+
+## Response Proportionality
+
+| Customer Question | Response Length | CTA Type |
+|-------------------|-----------------|----------|
+| One sentence | 2-3 sentences | Soft or none |
+| Short paragraph | 1 paragraph | Soft next step |
+| Multiple questions | 2-3 paragraphs | Booking link |
+| Complex objection | 3-4 paragraphs | Thoughtful invitation |
+
+## Fair Housing Compliance
+
+- [ ] No steering language (never suggest areas based on demographics)
+- [ ] Use "buyers" not "families"
+- [ ] Describe homes by features, not intended occupant type
+- [ ] No "family-friendly," "perfect for retirees," etc.
+- [ ] No assumptions about buyer motivations based on demographics
+
+## Quality Checklist
+
+- [ ] Response directly answers the customer's question
+- [ ] Voice and tone match {{AGENT_NAME}}'s communication style
+- [ ] All facts verified from knowledge bases
+- [ ] No Fair Housing violations
+- [ ] No generic realtor language
+- [ ] CTA is appropriate for inquiry type and temperature
+- [ ] Response length proportional to question
+- [ ] Market data includes timeframe reference
+- [ ] No commitments made without authorization
+- [ ] Draft is labeled as draft—not sent automatically
+
+## Related Workflows
+
+- [Customer Response Flow](/workflows/customer-response-flow) — Full intake to nurture pipeline
+- [Email Writer Agent](/agent-instructions/email-writer) — Follow-up nurture emails
+- [CRM Agent](/agent-instructions/crm-agent) — Contact logging and automation
+
+## Best Practices
+
+- **Speed tier 1:** Hot buyers/referrals → respond within 15 minutes
+- **Speed tier 2:** Warm buyers/sellers → respond within 2-4 hours
+- **Speed tier 3:** Cold/general → respond within 24 hours
+- **Never:** Auto-send responses without agent review
+- **Always:** Read conversation history before drafting
+- **Test:** Send drafts for agent approval before going to production
+- **Follow-up:** If no response in 3 days, send one gentle re-engagement
+
+## Integration with Other Agents
+
+- Receives input from [CRM Agent](/agent-instructions/crm-agent)
+- Works with [Email Writer Agent](/agent-instructions/email-writer) for follow-up nurture
+- Accesses knowledge bases built by [YouTube-to-Blog Agent](/agent-instructions/youtube-to-blog)
+- Logs interactions back to [CRM Agent](/agent-instructions/crm-agent)

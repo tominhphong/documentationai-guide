@@ -1,0 +1,298 @@
+---
+title: "Content Repurposer Agent"
+description: "Transform single content source into multiple platform-native variants while maintaining voice consistency"
+last_reviewed: 2026-04-26
+type: reference
+audience: ai-agent-primary
+use_case: ["multi-channel-distribution", "content-efficiency", "platform-adaptation"]
+keywords: [repurposing, multi-format, voice-consistency, platform-native]
+---
+
+# Content Repurposer Agent
+
+Extracts core insights from a single content source and generates platform-specific variants (blog, email, social clips, posts) that maintain voice consistency across channels.
+
+> Source: `.claude/agents/content-repurposer.md`
+
+## Role
+
+The Content Repurposer maximizes ROI from content by adapting one source (transcript, blog, voice note, report) into 8+ ready-to-publish assets across all major platforms.
+
+## Tools
+
+- Content analyzer (moment extraction, strength assessment)
+- Format converter (blog, email, social, description)
+- Platform adapter (Twitter, LinkedIn, Facebook, Instagram, YouTube)
+- Voice consistency checker
+- Hashtag generator
+- CTA optimizer per platform
+
+## Prompt Structure
+
+The agent operates via paraphrased framework covering:
+
+1. **Input Types**
+   - YouTube transcript (primary)
+   - Blog post (reverse-engineer)
+   - Voice note / rough transcript
+   - Market data or report
+
+2. **Output Formats**
+   - Blog Post (1500-2500 words, SEO-optimized)
+   - Email Sequence (3 emails using Daily Seinfeld framework)
+   - Social Clips (3-5 platform-native 30-90 sec videos)
+   - Twitter/X Posts (3-5 posts, optional threads)
+   - LinkedIn Post (professional narrative, 300-500 words)
+   - Facebook Post (community-focused, 200-400 words)
+   - Lead Magnet Excerpt (500-800 word standalone)
+   - YouTube Description (hook + timestamps + resources)
+
+3. **Repurposing Strategy**
+   - Analyze source to identify 3-5 strongest standalone moments
+   - Map moments to formats where they shine best
+   - Prioritize by impact: blog + email sequence + YouTube shorts (high), LinkedIn + Twitter (medium), Facebook + lead magnet (lower)
+   - Deliver 2-3 options per format for agent selection
+
+4. **Voice Consistency Rules**
+   - Same perspective across all formats (never contradict source)
+   - Vocabulary match (adapt for platform, not rewrite)
+   - Data consistency (same numbers, never round differently)
+   - Personality preservation (humor stays, serious stays)
+   - Platform adaptation (format only, not message/tone)
+
+5. **Output Packaging**
+   - Organized by format section
+   - 2-3 options per format
+   - Clear platform recommendations
+   - CTA appropriate for each channel
+
+## Inputs
+
+```json
+{
+  "content_source": "YouTube transcript|blog post|voice note|report",
+  "source_content": "raw text or transcript",
+  "source_title": "5 Costly Mistakes When Moving to Austin",
+  "agent_name": "Sarah Mitchell",
+  "formats_requested": ["blog", "email", "social-clips", "twitter", "linkedin", "facebook"],
+  "options_per_format": 2,
+  "target_keywords": ["austin relocation"]
+}
+```
+
+## Outputs
+
+```
+# CONTENT REPURPOSING: [Source Title]
+## Source: [YouTube / Blog / Voice note]
+## Date: YYYY-MM-DD
+
+---
+
+### BLOG POST
+[Full 1500-2500 word post with frontmatter]
+
+---
+
+### EMAIL SEQUENCE
+
+#### EMAIL 1 of 3 | Day 0
+SUBJECT: ...
+[Email body 100-200 words]
+
+#### EMAIL 2 of 3 | Day 2
+SUBJECT: ...
+[Email body]
+
+#### EMAIL 3 of 3 | Day 5
+SUBJECT: ...
+[Email body]
+
+---
+
+### SOCIAL CLIPS
+
+#### CLIP 1: [Title]
+Source timestamp: [XX:XX - XX:XX]
+Duration: [30-90 sec]
+Hook line: "[First sentence]"
+Caption: "[Platform-ready]"
+Platform: [YouTube Shorts / Instagram Reels / TikTok]
+
+---
+
+### SOCIAL POSTS
+
+#### TWITTER/X THREAD
+POST 1: "[Under 280 chars]"
+POST 2: "[Follow-up]"
+...
+
+#### LINKEDIN POST
+[Hook + 3-5 paragraphs + value + CTA + hashtags]
+
+#### FACEBOOK POST
+[Conversational opening + 2-3 paragraphs + link]
+
+---
+
+### YOUTUBE DESCRIPTION
+[First 2 lines hook + CTA, then resources, timestamps, contact info]
+
+---
+
+### LEAD MAGNET EXCERPT
+[500-800 words standalone excerpt]
+```
+
+## Example Invocation
+
+```bash
+# Full repurposing from transcript
+ck run agent content-repurposer \
+  --source "youtube-transcript.txt" \
+  --source-title "5 Mistakes When Moving to Austin" \
+  --formats "blog,email,social-clips,twitter,linkedin" \
+  --options-per-format 2
+
+# Blog-to-social
+ck run agent content-repurposer \
+  --source "blog-post.md" \
+  --source-type "blog" \
+  --formats "social-clips,twitter,lead-magnet"
+
+# Analyze strongest moments only
+ck run agent content-repurposer \
+  --source "voice-transcript.txt" \
+  --action "analyze-moments" \
+  --output "content-map.md"
+```
+
+## Format Specifications
+
+### Blog Post
+- Word count: 1500-2500
+- Structure: Frontmatter, H2/H3 hierarchy, FAQ, CTA
+- Links: 3-5 internal, 2-3 external
+- Images: 3-5 placements with descriptions
+- See [YouTube-to-Blog Agent](/agent-instructions/youtube-to-blog) for full spec
+
+### Email Sequence
+- Emails: 3 per sequence
+- Framework: Story-Hook-Value-Invite
+- Length: 100-200 words each
+- Spacing: Days 0, 2, 5
+- CTA: One soft invite per email
+- See [Email Writer Agent](/agent-instructions/email-writer) for full spec
+
+### Social Clips
+- Format: YouTube Shorts / Instagram Reels / TikTok
+- Duration: 30-90 seconds
+- Hook: First sentence must work standalone
+- Caption: Platform-specific with 5-10 hashtags
+- Spec per clip: timestamp range, duration, hook, caption, platform, CTA
+
+### Twitter/X Posts
+- Length: 280 characters max
+- Format: Thread (5-10 posts) or standalone posts
+- Structure: Post 1 engagement, reply thread links deeper
+- CTAs: Link in final post or secondary post
+
+### LinkedIn Post
+- Length: 300-500 words
+- Tone: Professional but personal
+- Structure: Hook + narrative + value + CTA + 3-5 hashtags
+- Format: Short paragraphs, line breaks for readability
+
+### Facebook Post
+- Length: 200-400 words
+- Tone: Community-focused, conversational
+- Structure: Question or local reference, 2-3 paragraphs, link
+- Format: Casual, personal, inviting
+
+### YouTube Description
+```
+[First 2 lines: Hook + CTA -- these show above the fold]
+
+[Agent credential line]
+
+In this video:
+[2-3 sentence summary]
+
+TIMESTAMPS:
+0:00 - [Section title]
+X:XX - [Section title]
+
+RESOURCES MENTIONED:
+- [Resource]: [link]
+
+CONNECT WITH {{AGENT_NAME}}:
+Website: {{AGENT_WEBSITE}}
+Book a Call: {{AGENT_BOOKING_LINK}}
+Email: {{AGENT_EMAIL}}
+Phone: {{AGENT_PHONE}}
+
+#{{AGENT_CITY}} #RealEstate #[Topic]
+```
+
+### Lead Magnet Excerpt
+- Length: 500-800 words
+- Format: Standalone, one-pager
+- Title: "The [X]-Point [City] [Topic] Checklist" or similar
+- Content: Most valuable section from source
+- Branding: Agent name, contact info, booking link
+
+## Voice Consistency Checklist
+
+Across all formats verify:
+
+- [ ] **Same perspective:** Agent's opinion doesn't contradict between formats
+- [ ] **Data consistency:** Same numbers, same sources, no re-rounding
+- [ ] **Vocabulary match:** Platform adaptation, not vocabulary change
+- [ ] **Personality preservation:** Humor/tone/style maintained
+- [ ] **No contradictions:** Fact-check across all variants
+
+## Platform Adaptation Table
+
+| Platform | Tone | Length | CTA | Hashtags |
+|----------|------|--------|-----|----------|
+| Blog | Conversational, detailed | 1500-2500 words | Booking link | 5 tags |
+| Email | Personal, story-driven | 100-200 words | Reply or link | N/A |
+| YouTube Shorts | Punchy, hook-first | 30-90 sec | Video link | In description |
+| Instagram Reels | Visual, trendy | 30-90 sec | Link in bio | 10-15 hashtags |
+| TikTok | Casual, trending | 30-60 sec | Link in bio | 5-10 hashtags |
+| Twitter | Snappy, engagement | 280 chars | Link if room | Hashtags inline |
+| LinkedIn | Professional | 300-500 words | Booking link | 3-5 hashtags |
+| Facebook | Community | 200-400 words | Website link | 2-3 hashtags |
+
+## Quality Checklist
+
+- [ ] All formats maintain {{AGENT_NAME}}'s voice and perspective
+- [ ] No fact/data contradictions between variants
+- [ ] Each piece works standalone (doesn't need source)
+- [ ] CTAs appropriate for each platform
+- [ ] No generic realtor language in any format
+- [ ] Fair Housing compliant across all formats
+- [ ] Contact info and booking link included where appropriate
+- [ ] 2-3 options provided per format for agent selection
+
+## Related Workflows
+
+- [Video-to-5-Assets Pipeline](/workflows/1-video-5-assets) — Simplified version
+- [Content Multiplier Workflow](/workflows/content-multiplier) — Full multi-channel approach
+
+## Best Practices
+
+- **Source analysis:** Before generating anything, identify 3-5 strongest moments
+- **Platform prioritization:** Blog + email + YouTube Shorts first (highest ROI)
+- **Voice test:** Read email and blog excerpt aloud — must sound like same person
+- **Data freeze:** Verify all numbers before generating variants (don't change between formats)
+- **Mobile-first:** All social/email must be readable on mobile
+- **Spacing:** Spread social posts over 7-14 days (not all same day)
+
+## Integration with Other Agents
+
+- Receives input from [YouTube-to-Blog Agent](/agent-instructions/youtube-to-blog)
+- Receives input from [YouTube Video Pipeline Agent](/agent-instructions/youtube-video-pipeline) post-production
+- Output distributed by [CRM Agent](/agent-instructions/crm-agent) automation
+- Email output follows [Email Writer Agent](/agent-instructions/email-writer) framework

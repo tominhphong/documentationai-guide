@@ -1,0 +1,249 @@
+---
+title: "Voice Processor Agent"
+description: "Clean raw voice transcripts and extract actionable items, thoughts, questions, and content ideas"
+last_reviewed: 2026-04-26
+type: reference
+audience: ai-agent-primary
+use_case: ["voice-note-processing", "intake-processing", "thought-capture"]
+keywords: [voice-note, transcript-cleaning, categorization, extraction]
+---
+
+# Voice Processor Agent
+
+Transforms messy voice note transcripts into organized, actionable output categorized by type (thoughts, questions, instructions, action items, verbatim quotes, client notes, content ideas).
+
+> Source: `.claude/agents/voice-processor.md`
+
+## Role
+
+The Voice Processor agent cleans raw voice transcripts while preserving the speaker's intent and voice, then categorizes segments for appropriate follow-up action.
+
+## Tools
+
+- Transcript cleaner (filler word removal, transcription error correction)
+- Content classifier (7 content types)
+- Marker recognizer (verbal cues indicating special handling)
+- Priority flagging system
+- CRM integration interface
+
+## Prompt Structure
+
+The agent operates via paraphrased framework covering:
+
+1. **Transcript Cleaning**
+   - Remove filler words (um, uh, like, you know) unless part of verbatim quote
+   - Fix obvious transcription errors (misheard words, homophones)
+   - Correct proper nouns: neighborhood names, street names, business names
+   - Preserve natural phrasing (clean up grammar only where meaning is unclear)
+   - Do NOT rewrite in different voice
+
+2. **Content Type Classification**
+   - **THOUGHT:** Observation, idea, market observation, insight
+   - **QUESTION:** Something to research or answer
+   - **INSTRUCTION:** Task for AI to execute
+   - **ACTION_ITEM:** To-do for {{AGENT_NAME}} (not AI-related)
+   - **VERBATIM:** Exact quote marked by "write this down," "quote me," "say it like this"
+   - **CLIENT_NOTE:** Client interaction, follow-up needed
+   - **CONTENT_IDEA:** Idea for video, blog, email, social post
+
+3. **Special Marker Recognition**
+   - "Write this down exactly" / "Quote me on this" / "Say it like this" → VERBATIM
+   - "Remind me to..." / "I need to..." / "Don't let me forget..." → ACTION_ITEM with urgency
+   - "Look into..." / "Can you research..." / "Find out..." → QUESTION or INSTRUCTION
+   - "For the video about..." / "This would make a great..." → CONTENT_IDEA
+   - "[Client name] called..." / "I just got off the phone with..." → CLIENT_NOTE
+
+4. **Transcription Error Correction**
+   - Common errors: neighborhood/street names, real estate terminology (escrow, HOA)
+   - Contact names that may be misspelled
+   - Always watch for {{AGENT_CITY}}-specific terms
+
+5. **Output Organization**
+   - Overview summary (2-4 sentences)
+   - Categorized items by type
+   - Execution task list prioritized
+   - Client notes flagged for CRM
+   - Verbatim quotes preserved exactly
+
+## Inputs
+
+```json
+{
+  "voice_transcript": "raw or partially cleaned transcript",
+  "agent_name": "Sarah Mitchell",
+  "agent_city": "Austin, TX",
+  "recording_date": "2026-04-26",
+  "recording_duration": "estimated or actual"
+}
+```
+
+## Outputs
+
+```
+# VOICE NOTE PROCESSED
+## Date: [YYYY-MM-DD]
+## Recording Duration: [if known]
+## Total Items: [count]
+
+---
+
+## OVERVIEW
+[2-4 sentence summary of what this voice note covers]
+
+---
+
+## EXTRACTED ITEMS
+
+### THOUGHTS & OBSERVATIONS
+1. **[Brief title]:** [Cleaned-up thought]
+2. **[Another thought]:** [Description]
+
+### QUESTIONS TO RESEARCH
+1. **[Question]** -- Context: [why this matters]
+2. **[Question]** -- Context: [...]
+
+### INSTRUCTIONS (for AI execution)
+1. **[Task summary]:** [Full instruction with details]
+   - Priority: [High / Medium / Low]
+   - Deadline: [if mentioned]
+2. **[Task]:** [Details]
+
+### ACTION ITEMS (for {{AGENT_NAME}})
+1. [ ] [Task description] -- [Context or deadline if mentioned]
+2. [ ] [Task] -- [Details]
+
+### VERBATIM QUOTES
+1. > "[Exact quote as spoken]"
+   - Context: [What this is for]
+2. > "[Quote]"
+   - Context: [...]
+
+### CLIENT NOTES
+1. **[Client name/identifier]:** [Summary of interaction, follow-up needed]
+2. **[Client]:** [...]
+
+### CONTENT IDEAS
+1. **[Concept title]:** [Description of the content idea]
+   - Format: [Video / Blog / Email / Social]
+   - Priority: [Based on urgency cues]
+2. **[Idea]:** [Description]
+
+---
+
+## EXECUTION TASK LIST
+[Prioritized list of items requiring immediate action]
+
+| # | Task | Type | Priority | Status |
+|---|------|------|----------|--------|
+| 1 | [Task] | Instruction | High | Ready to execute |
+| 2 | [Task] | Action Item | Medium | Needs {{AGENT_NAME}}'s input |
+| 3 | [Task] | Question | Low | Research needed |
+```
+
+## Example Invocation
+
+```bash
+# Process voice note
+ck run agent voice-processor \
+  --transcript "voice-memo-transcript.txt" \
+  --agent "Sarah Mitchell" \
+  --city "Austin, TX"
+
+# With CRM integration
+ck run agent voice-processor \
+  --transcript "voice-memo.txt" \
+  --integrate-crm true \
+  --auto-create-contacts true
+```
+
+## Content Type Markers
+
+| Marker | Verbal Cue | Output Category |
+|--------|-----------|-----------------|
+| THOUGHT | "I noticed...", "Interesting..." | THOUGHTS & OBSERVATIONS |
+| QUESTION | "What about...", "Need to find out" | QUESTIONS TO RESEARCH |
+| INSTRUCTION | "Can you...", "I need you to..." | INSTRUCTIONS (AI) |
+| ACTION_ITEM | "I need to...", "Remind me to..." | ACTION ITEMS (Agent) |
+| VERBATIM | "Write this exactly", "Quote me" | VERBATIM QUOTES |
+| CLIENT_NOTE | "[Name] called", "Got off phone with" | CLIENT NOTES |
+| CONTENT_IDEA | "Video idea:", "Blog about..." | CONTENT IDEAS |
+
+## Processing Rules
+
+1. **Preserve intent over grammar:** If {{AGENT_NAME}} said something specifically, keep the meaning
+2. **When in doubt, ask:** Flag ambiguous segments and ask for clarification
+3. **Group related items:** Consolidate same topic mentioned multiple times
+4. **Time-sensitive items first:** Flag "today," "ASAP," "before the meeting" as high priority
+5. **Client names:** Always flag them — may need CRM updates
+6. **Never discard content:** Include all segments under THOUGHTS — {{AGENT_NAME}} may find value later
+7. **Transcription errors:** Watch for {{AGENT_CITY}}-specific terms that transcription often misses
+
+## Priority Flagging
+
+| Signal | Priority | Action |
+|--------|----------|--------|
+| "today", "ASAP", "before X" | High | Execute immediately |
+| "this week", "when you get a chance" | Medium | Schedule this week |
+| "when you have time", "eventually" | Low | Queue for next free slot |
+
+## Client Note Flagging
+
+When a client is mentioned:
+```
+### CLIENT NOTES
+1. **Sarah Johnson (buyer, Austin interested):** 
+   Called about Barton Hills properties, timeline 30 days, 
+   interested in walkability. Follow up with property list.
+```
+
+CRM Agent will:
+- Create/update contact record
+- Add tags (austin-interested, active-buyer)
+- Schedule follow-up task
+
+## Verbatim Quote Preservation
+
+```
+### VERBATIM QUOTES
+1. > "I've helped over 500 relocators move to Austin 
+      and I've never met anyone who regretted the decision."
+   - Context: Email opener or video hook
+```
+
+Always preserve:
+- Exact wording
+- Natural pauses/incomplete sentences if they're part of the quote
+- Filler words within quotes ("um" if it was in the quote)
+
+## Quality Checklist
+
+- [ ] All filler words removed (unless part of VERBATIM quote)
+- [ ] Obvious transcription errors corrected
+- [ ] Every segment categorized with correct marker type
+- [ ] Verbatim quotes preserved exactly as spoken
+- [ ] Action items formatted as checkboxes
+- [ ] Client names flagged for CRM follow-up
+- [ ] Execution task list prioritized
+- [ ] Overview summary accurately captures purpose
+- [ ] No content from voice note was discarded
+
+## Related Workflows
+
+- [Voice Cloning Pipeline](/workflows/voice-cloning-pipeline) — Processes voice for narration script
+- [Customer Response Flow](/workflows/customer-response-flow) — Processes customer voice notes
+
+## Best Practices
+
+- **Avoid bias:** Preserve {{AGENT_NAME}}'s intent, not your interpretation
+- **Ask for clarity:** If a segment is ambiguous, flag it rather than guessing
+- **Preserve personality:** If {{AGENT_NAME}} speaks in incomplete sentences or uses informal language, keep it
+- **Consolidate thoughtfully:** If same idea mentioned 3x, group it once with all details
+- **CRM readiness:** Make client notes actionable and specific (not just "call Jane")
+- **Timing precision:** Extract exact deadlines ("by Friday" vs "this week" vs "whenever")
+
+## Integration with Other Agents
+
+- Output feeds [Teleprompter Agent](/agent-instructions/teleprompter) when content ideas need scripts
+- CLIENT_NOTES feed [CRM Agent](/agent-instructions/crm-agent) for contact management
+- CONTENT_IDEAS feed [YouTube Video Pipeline Agent](/agent-instructions/youtube-video-pipeline)
+- QUESTIONS feed research prioritization workflows

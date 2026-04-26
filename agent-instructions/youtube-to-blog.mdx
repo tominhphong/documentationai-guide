@@ -1,0 +1,249 @@
+---
+title: "YouTube-to-Blog Agent"
+description: "Transform video transcripts into SEO-optimized WordPress blog posts with proper linking and schema"
+last_reviewed: 2026-04-26
+type: reference
+audience: ai-agent-primary
+use_case: ["blog-creation", "seo-optimization", "content-repurposing"]
+keywords: [blog-post, seo, wordpress, content-conversion, organic-search]
+---
+
+# YouTube-to-Blog Agent
+
+Converts YouTube video transcripts into SEO-optimized, WordPress-ready blog posts that drive organic search traffic.
+
+> Source: `.claude/agents/youtube-to-blog.md`
+
+## Role
+
+The YouTube-to-Blog agent analyzes speaker voice, researches claims, structures content with proper SEO hierarchy, and produces publication-ready blog posts with internal/external links and metadata.
+
+## Tools
+
+- Transcript analyzer (voice pattern detection)
+- Content researcher (fact verification, source finding)
+- SEO optimizer (keyword density, readability scoring)
+- Internal linking tool (site content matching)
+- Schema markup generator (FAQ, Article, LocalBusiness)
+- Image suggestion system
+
+## Prompt Structure
+
+The agent operates via paraphrased framework covering:
+
+1. **Phase 1: Voice & Style Analysis**
+   - Identify sentence structure patterns (short/punchy vs. detailed vs. mixed)
+   - Vocabulary level (casual, technical, or mixed)
+   - Signature phrases and verbal tics
+   - Humor style (dry, self-deprecating, observational, or none)
+   - Expertise signals (stories, data, comparisons)
+   - Emotional tone (enthusiastic, measured, passionate)
+   - Output: Brief voice profile (5-8 bullet points)
+
+2. **Phase 2: Research & Verification**
+   - Cross-check statistics and facts mentioned
+   - Find 2-3 authoritative sources supporting key claims
+   - Identify FAQ opportunities
+   - Map internal linking opportunities to site content
+   - Find external authority links (government, chambers of commerce, schools)
+
+3. **Phase 3: Blog Post Structure**
+   - Frontmatter: title, date, author, excerpt (150-160 chars), tags, youtubeId
+   - YouTube video embed at top
+   - Introduction (100-150 words) — hook, overview, why it matters, primary keyword
+   - H2 sections (200-400 words each) — derived from video structure
+   - H3 subsections for detailed breakdowns
+   - "What You Need to Know" section (200-300 words)
+   - FAQ section (3-6 questions, schema-ready format)
+   - CTA section — agent bio, booking link, contact info
+   - Suggested image placements with descriptions
+
+4. **Phase 4: SEO Optimization**
+   - Keyword strategy: Primary (3-5x naturally), secondary (1-2x each), long-tail
+   - Readability: Flesch score 60+ (conversational, not academic)
+   - Paragraph max 3-4 sentences for web readability
+   - Proper H2/H3 hierarchy (no skipped levels)
+   - 3-5 internal links with descriptive anchor text
+   - 2-3 external authority links
+   - Meta description (150-160 chars) with primary keyword
+   - URL slug suggestion
+   - Alt text suggestions for images
+   - Schema markup recommendations (FAQPage, Article, LocalBusiness)
+
+5. **Fair Housing Compliance**
+   - No steering language
+   - Use descriptive language (features, amenities) not demographic assumptions
+   - Never use "family-friendly," "safe neighborhood," or similar coded language
+
+## Inputs
+
+```json
+{
+  "transcript": "raw or cleaned video transcript",
+  "video_title": "5 Mistakes Moving to Austin",
+  "video_id": "abc123xyz",
+  "agent_name": "Sarah Mitchell",
+  "agent_website": "sarahmitchell.com",
+  "target_keywords": ["austin relocation", "moving mistakes"],
+  "internal_links_to_include": ["relocation-guide.html", "austin-neighborhoods.html"],
+  "optional_featured_image": "description for image selection"
+}
+```
+
+## Outputs
+
+```markdown
+---
+title: "[SEO-Optimized Title - Under 60 Characters]"
+date: "YYYY-MM-DD"
+author: "{{AGENT_NAME}}"
+excerpt: "[150-160 character meta description with primary keyword]"
+tags: ["{{AGENT_CITY}}", "tag2", "tag3", "tag4", "tag5"]
+youtubeId: "[VIDEO_ID]"
+featuredImage: "[suggested image description]"
+---
+
+[YouTube video embed code]
+
+## Introduction (100-150 words)
+[Hook, overview, why it matters, primary keyword]
+
+## H2: [Major Section] (200-400 words)
+[Transformed from video content]
+[Add supporting data]
+[Include bullet points and lists]
+[H3 subsections for detail]
+
+## H2: [Next Section] (200-400 words)
+[Same structure]
+
+## H2: What You Need to Know Before [Action]
+[Takeaways + numbered list]
+
+## H2: Frequently Asked Questions
+
+### Q: [Question]?
+[Answer 50-100 words]
+
+### Q: [Question]?
+[Answer]
+
+[Minimum 3, maximum 6]
+
+## H2: Ready to Explore {{AGENT_CITY}}?
+[Soft CTA paragraph]
+[Agent bio mention]
+[Booking link]
+[Contact info]
+```
+
+## Example Invocation
+
+```bash
+ck run agent youtube-to-blog \
+  --transcript "raw-transcript.txt" \
+  --title "5 Costly Mistakes When Moving to Austin" \
+  --video-id "abc123xyz" \
+  --target-keywords "austin relocation,moving mistakes" \
+  --agent "Sarah Mitchell" \
+  --website "sarahmitchell.com"
+```
+
+## Blog Post Specifications
+
+| Aspect | Specification |
+|--------|---------------|
+| Word count | 1500-2500 words |
+| Keyword density | 3-5x primary, 1-2x secondary |
+| Readability | Flesch 60+ (conversational) |
+| Paragraph length | Max 3-4 sentences |
+| Images | 3-5 placements with descriptions |
+| Internal links | 3-5 with anchor text |
+| External links | 2-3 authority sources |
+| Meta description | 150-160 characters |
+| H2/H3 structure | Proper hierarchy, no skips |
+| FAQ section | 3-6 questions, schema format |
+| Video embed | At top of post |
+
+## Voice Preservation Rules
+
+- Match {{AGENT_NAME}}'s sentence structure from transcript
+- Use exact vocabulary and phrasing where possible
+- Preserve humor style and personality markers
+- Maintain emotional tone (measured, enthusiastic, etc.)
+- Blog should read like same person as video
+
+## SEO Strategy Report Template
+
+The agent delivers alongside blog post:
+
+```
+## SEO Strategy Report: [Blog Title]
+
+### Target Keywords
+- Primary: [keyword] (monthly search volume)
+- Secondary: [keyword], [keyword]
+- Long-tail: [keyword phrase], [keyword phrase]
+
+### On-Page SEO Checklist
+- [ ] Primary keyword in title (H1)
+- [ ] Primary keyword in first 100 words
+- [ ] Primary keyword in at least one H2
+- [ ] Meta description: [exact 150-160 char version]
+- [ ] URL slug: /[slug]
+- [ ] Alt text suggestions for images
+- [ ] Internal links: [list with anchor text]
+- [ ] External links: [list with anchor text]
+
+### Schema Markup Suggestions
+- FAQPage schema for FAQ section
+- Article schema (author, date, publisher)
+- LocalBusiness schema reference in CTA
+
+### Content Gap Analysis
+- Topics this post covers competitors miss: [list]
+- Related topics to create next: [list]
+- Seasonal relevance: [when this post peaks]
+
+### Suggested Social Shares
+- Facebook/LinkedIn: [1-2 sentence teaser + link]
+- Twitter/X: [Under 280 chars with link]
+- Instagram caption: [With relevant hashtags]
+```
+
+## Quality Checklist
+
+- [ ] Word count 1500-2500 range
+- [ ] All H2/H3 tags properly structured
+- [ ] FAQ section has 3-6 questions formatted for schema
+- [ ] CTA section includes booking link, phone, email
+- [ ] No generic realtor language
+- [ ] No Fair Housing violations
+- [ ] Voice matches transcript style
+- [ ] All facts either from transcript or independently verifiable
+- [ ] Frontmatter complete and properly formatted
+- [ ] YouTube video ID correct for embed
+- [ ] Internal and external links included
+- [ ] Meta description 150-160 chars with primary keyword
+
+## Related Workflows
+
+- [Video-to-5-Assets Pipeline](/workflows/1-video-5-assets) — Blog as first step
+- [Content Multiplier Workflow](/workflows/content-multiplier) — Blog repurposing to other formats
+- [YouTube Video Pipeline Agent](/agent-instructions/youtube-video-pipeline) — Upstream research and script
+
+## Best Practices
+
+- **Voice first:** Analyze transcript before writing anything
+- **Keyword research:** Find realistic search volumes before targeting
+- **Internal linking:** Link to 3-5 relevant existing posts, not just homepage
+- **Visual breaks:** Use subheadings and lists to prevent wall-of-text
+- **Mobile test:** Preview on mobile — many readers come from phones
+- **Fair Housing:** Never use demographic-coded language (family-friendly, safe, etc.)
+- **Update cadence:** Refresh blog quarterly when market data changes
+
+## Integration with Other Agents
+
+- Works alongside [YouTube Video Pipeline Agent](/agent-instructions/youtube-video-pipeline) as post-production step
+- Output used by [Content Repurposer Agent](/agent-instructions/content-repurposer) for social/email
+- Builds SEO foundation that benefits [Customer Response Agent](/agent-instructions/customer-response) via organic leads

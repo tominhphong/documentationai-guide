@@ -1,0 +1,349 @@
+---
+title: "Node.js & TypeScript Conventions"
+description: "Code standards for the MCP server and any web projects."
+last_reviewed: 2026-04-26
+type: reference
+audience: ai-agent-primary
+use_case: ["extend-mcp-server", "add-typescript-features", "maintain-code-quality"]
+keywords: [TypeScript, Node.js, MCP, conventions, async-await, error-handling]
+---
+
+# Node.js & TypeScript Conventions
+
+> Source: `.claude/rules/node-conventions.md`
+
+This guide defines coding standards for the MCP server (`mcp_server/`) and any web frontends. Follow these conventions when extending or modifying TypeScript code.
+
+## MCP Server & Tools
+
+### Language & Build
+
+- **Language:** TypeScript (all MCP server code)
+- **Build:** `npx tsc` for compilation (TypeScript → JavaScript)
+- **Dev mode:** `ts-node-dev src/index.ts` for hot-reload development
+- **Output:** Compiled JavaScript goes to `dist/` directory
+- **Execution:** `node mcp_server/dist/index.js`
+
+### Naming Conventions
+
+| Type | Convention | Example |
+|------|-----------|---------|
+| **Classes** | PascalCase | `YouTubeTranscriptFetcher` |
+| **Interfaces** | PascalCase, prefix with `I` | `IToolRequest`, `ISearchResult` |
+| **Functions** | camelCase | `fetchTranscript()`, `searchKnowledgeBase()` |
+| **Variables** | camelCase | `userInput`, `vectorStore` |
+| **Constants** | UPPER_SNAKE_CASE | `MAX_RETRIES`, `API_TIMEOUT_MS` |
+| **Files** | camelCase or kebab-case | `index.ts`, `tool-handlers.ts` |
+
+### Async/Await Over Promises
+
+**✓ Correct:**
+```typescript
+async function fetchContent(url: string): Promise<string> {
+  try {
+    const response = await fetch(url);
+    return await response.text();
+  } catch (error) {
+    console.error("Fetch failed:", error);
+    throw new Error(`Failed to fetch ${url}`);
+  }
+}
+```
+
+**✗ Avoid:**
+```typescript
+function fetchContent(url: string): Promise<string> {
+  return fetch(url)
+    .then(response => response.text())
+    .catch(error => {
+      console.error("Fetch failed:", error);
+      throw new Error(`Failed to fetch ${url}`);
+    });
+}
+```
+
+### Error Handling & Responses
+
+All tool responses must include error codes and structured messages.
+
+**✓ Correct:**
+```typescript
+interface ToolResponse {
+  success: boolean;
+  data?: unknown;
+  error?: {
+    code: string;
+    message: string;
+  };
+}
+
+async function searchKnowledgeBase(
+  query: string
+): Promise<ToolResponse> {
+  try {
+    const results = await vectorStore.search(query);
+    return { success: true, data: results };
+  } catch (error) {
+    return {
+      success: false,
+      error: {
+        code: "SEARCH_FAILED",
+        message: `Knowledge base search error: ${error.message}`
+      }
+    };
+  }
+}
+```
+
+## Web Projects (React + Vite)
+
+If building a web frontend:
+
+### Stack
+
+- **Framework:** React with TypeScript
+- **Build tool:** Vite
+- **Styling:** Tailwind CSS
+- **Routing:** React Router
+- **Forms:** React Hook Form
+- **Linting:** ESLint + Prettier
+
+### Component Structure
+
+**PascalCase for components:**
+```typescript
+// src/components/VideoOutlineGenerator.tsx
+export function VideoOutlineGenerator() {
+  return <div>...</div>;
+}
+
+// Usage in another file
+import { VideoOutlineGenerator } from "@/components/VideoOutlineGenerator";
+```
+
+**camelCase for utilities and logic:**
+```typescript
+// src/utils/contentFormatter.ts
+export const formatBlogPost = (content: string): string => {
+  // ...
+};
+
+// src/hooks/useKnowledgeBase.ts
+export const useKnowledgeBase = (query: string) => {
+  // ...
+};
+```
+
+### Imports with Path Aliases
+
+Use `@/` for clean imports (configured in `vite.config.ts`):
+
+**✓ Correct:**
+```typescript
+import { Button } from "@/components/ui/Button";
+import { useKnowledgeBase } from "@/hooks/useKnowledgeBase";
+import { API_BASE_URL } from "@/config/constants";
+```
+
+**✗ Avoid:**
+```typescript
+import { Button } from "../../../components/ui/Button";
+import { useKnowledgeBase } from "../../hooks/useKnowledgeBase";
+```
+
+### Type Safety
+
+All functions should have explicit type signatures:
+
+**✓ Correct:**
+```typescript
+interface GenerateBlogPostRequest {
+  transcript: string;
+  tone: "professional" | "conversational" | "technical";
+  maxLength?: number;
+}
+
+async function generateBlogPost(
+  req: GenerateBlogPostRequest
+): Promise<string> {
+  // ...
+}
+```
+
+**✗ Avoid:**
+```typescript
+async function generateBlogPost(req: any): Promise<any> {
+  // ...
+}
+```
+
+## Shared Rules (MCP & Web)
+
+### Environment Variables
+
+**Use `.env` files for secrets:**
+```bash
+# .env (never commit)
+ANTHROPIC_API_KEY=sk-xxx
+CRM_API_KEY=ghl-xxx
+DATABASE_URL=postgres://...
+```
+
+**Load in code:**
+```typescript
+const apiKey = process.env.ANTHROPIC_API_KEY;
+if (!apiKey) {
+  throw new Error("ANTHROPIC_API_KEY not set in .env");
+}
+```
+
+### Dependencies in package.json
+
+**All dependencies go in `package.json`, never global installs:**
+```bash
+# ✓ Correct
+npm install lodash-es
+npm install --save-dev @types/node
+
+# ✗ Avoid
+npm install -g lodash-es
+```
+
+### No Hardcoded Credentials
+
+**✓ Correct:**
+```typescript
+const supabaseKey = process.env.SUPABASE_KEY;
+const client = new SupabaseClient(SUPABASE_URL, supabaseKey);
+```
+
+**✗ Avoid:**
+```typescript
+const client = new SupabaseClient(
+  "https://project.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+);
+```
+
+### Code Quality
+
+**ESLint + Prettier:**
+```bash
+npm run lint          # Check for style issues
+npm run format        # Auto-format code
+npm run type-check    # Run TypeScript compiler
+```
+
+All TypeScript code should pass type checking (`tsc --noEmit`) before commit.
+
+## File Organization Example
+
+```
+mcp_server/
+├── src/
+│   ├── index.ts                    # Main entry point
+│   ├── types.ts                    # Shared TypeScript interfaces
+│   ├── config.ts                   # Configuration loading
+│   ├── tools/                      # Tool definitions
+│   │   ├── index.ts
+│   │   ├── youtubeTools.ts
+│   │   ├── ragTools.ts
+│   │   └── crmTools.ts
+│   ├── handlers/                   # Tool execution logic
+│   │   ├── index.ts
+│   │   ├── youtubeHandler.ts
+│   │   ├── ragHandler.ts
+│   │   └── crmHandler.ts
+│   └── utils/                      # Shared utilities
+│       ├── logger.ts
+│       ├── errorHandler.ts
+│       └── validators.ts
+├── dist/                           # Compiled output
+├── package.json
+├── tsconfig.json
+├── .eslintrc.json
+└── .prettierrc.json
+```
+
+## Debugging & Development
+
+**Start dev server with hot reload:**
+```bash
+cd mcp_server
+npx ts-node-dev src/index.ts
+```
+
+**Watch TypeScript compilation:**
+```bash
+npx tsc --watch
+```
+
+**Run tests:**
+```bash
+npm test                           # Jest or similar
+npm run test:watch                 # Watch mode
+```
+
+## Example: Simple Tool Implementation
+
+**Tool definition:**
+```typescript
+// src/tools/ragTools.ts
+interface SearchRequest {
+  query: string;
+  limit?: number;
+}
+
+export async function searchKnowledgeBase(
+  req: SearchRequest
+): Promise<ToolResponse> {
+  const { query, limit = 10 } = req;
+
+  if (!query || query.length < 2) {
+    return {
+      success: false,
+      error: {
+        code: "INVALID_QUERY",
+        message: "Query must be at least 2 characters"
+      }
+    };
+  }
+
+  try {
+    const results = await vectorStore.search(query, limit);
+    return {
+      success: true,
+      data: {
+        query,
+        results,
+        count: results.length
+      }
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: {
+        code: "SEARCH_ERROR",
+        message: `Search failed: ${error.message}`
+      }
+    };
+  }
+}
+```
+
+## When to Use Each Pattern
+
+| Scenario | Pattern |
+|----------|---------|
+| API call with error handling | `async/await` with `try/catch` |
+| User form input validation | `React Hook Form` + Zod/Yup |
+| Styling a component | Tailwind CSS classes (not inline styles) |
+| Storing API URL | `process.env.API_BASE_URL` |
+| Type-safe API response | Define interface, use in function signature |
+| Reusable UI component | Export from `@/components` with PascalCase name |
+
+## Related Topics
+
+- [Python Conventions](/core-rules/python-conventions)
+- [Architecture & Components](/framework/architecture)
+- [Repository Layout](/framework/repo-layout)

@@ -1,0 +1,192 @@
+---
+title: "Python Content Tools"
+description: "Backend Python modules for transcript-to-blog conversion and email sequence generation."
+last_reviewed: 2026-04-26
+type: reference
+audience: ai-agent-primary
+use_case: ["content-generation", "blog-publishing", "email-marketing"]
+keywords: [transcript-conversion, blog-generation, email-sequences, content-repurposing]
+---
+
+# Python Content Tools
+
+Backend Python modules for converting video transcripts into structured blog posts and generating email marketing sequences. Handles transcript cleaning, text structuring, and multi-format output.
+
+> Source: `tools/content_tools/`
+
+## Module Overview
+
+| Module | Purpose |
+|--------|---------|
+| `transcript_to_blog.py` | Convert transcript to blog post (JSON + markdown) |
+| `generate_emails.py` | Generate email sequences from content |
+
+## transcript_to_blog.py
+
+Convert a video transcript into a structured blog post. Cleans filler words, normalizes real estate terminology, extracts sections and key points, and outputs both JSON template and markdown blog.
+
+**Public Functions:**
+
+| Function | Params | Returns | Notes |
+|----------|--------|---------|-------|
+| `clean_transcript()` | text: str | str | Removes fillers and fixes errors |
+| `extract_sections()` | text: str | Dict | Identifies major sections |
+| `generate_title()` | text: str | str | Auto-generates title from content |
+| `to_markdown()` | structure: Dict | str | Outputs markdown blog |
+| `to_json()` | structure: Dict | Dict | Outputs JSON template |
+
+**Dependencies:**
+- None (standard library only)
+
+**Environment Variables:**
+- `AGENT_NAME` (optional) — Default agent for voice matching
+
+**Configuration:**
+- **Filler patterns:** um, uh, "you know", "like" (as filler), "kind of", "basically"
+- **Real estate fixes:** St. Pete, Tampa Bay, HOA, MLS, sq ft, bedroom, bathroom, condo, townhome, "300k" → "300,000"
+
+**Example:**
+```python
+from transcript_to_blog import clean_transcript, extract_sections, to_markdown
+
+# Read transcript
+transcript = Path("video_abc123.txt").read_text()
+
+# Clean filler words and transcription errors
+cleaned = clean_transcript(transcript)
+
+# Extract sections and key points
+structure = extract_sections(cleaned)
+
+# Generate markdown
+blog_md = to_markdown(structure)
+Path("blog_post.md").write_text(blog_md)
+```
+
+**CLI Usage:**
+```bash
+python3 transcript_to_blog.py --input transcript.txt --title "My Blog Post"
+python3 transcript_to_blog.py --input transcript.txt --agent aaron_chand
+python3 transcript_to_blog.py --input transcript.txt --output blog.md
+```
+
+**Output Formats:**
+
+**JSON Template:**
+```json
+{
+  "title": "How to Choose the Right Neighborhood in Tampa",
+  "author": "Agent Name",
+  "date": "2026-04-26",
+  "read_time_minutes": 8,
+  "sections": [
+    {
+      "heading": "Section Title",
+      "content": "Section content...",
+      "key_points": ["Point 1", "Point 2"],
+      "callouts": ["Important insight"]
+    }
+  ]
+}
+```
+
+**Markdown Output:**
+```markdown
+# How to Choose the Right Neighborhood in Tampa
+
+By Agent Name | Apr 26, 2026 | 8 min read
+
+## Section Title
+
+Section content...
+
+### Key Points
+- Point 1
+- Point 2
+```
+
+---
+
+## generate_emails.py
+
+Generate email templates from source content (transcripts, blog posts, guides). Creates distinct, non-repetitive email sequences for nurture, follow-up, drip, welcome, or re-engagement campaigns.
+
+**Public Functions:**
+
+| Function | Params | Returns | Notes |
+|----------|--------|---------|-------|
+| `extract_content()` | source_path: str | str | Parses content from various formats |
+| `generate_emails()` | content: str, sequence_type: str, count: int | List[Dict] | Generates email list |
+| `format_email()` | email_data: Dict | str | Formats single email |
+
+**Dependencies:**
+- None (standard library only)
+
+**Example:**
+```python
+from generate_emails import generate_emails
+
+emails = generate_emails(
+    content="Relocation guide content...",
+    sequence_type="nurture",
+    count=5
+)
+
+for i, email in enumerate(emails, 1):
+    print(f"Email {i}: {email['subject']}")
+    print(email['body'])
+    print("---")
+```
+
+**CLI Usage:**
+```bash
+python3 generate_emails.py --input blog.md --type nurture --count 5
+python3 generate_emails.py --input transcript.txt --type followup --count 3
+python3 generate_emails.py --input guide.json --type welcome --count 4
+```
+
+**Sequence Types:**
+
+| Type | Purpose | Typical Count |
+|------|---------|---------------|
+| `nurture` | Long-form lead nurture | 5-10 |
+| `followup` | Post-interaction follow-ups | 2-3 |
+| `drip` | Automated campaign over time | 5-7 |
+| `welcome` | New subscriber series | 3-5 |
+| `reengagement` | Win-back campaign | 2-4 |
+
+**Output Format:**
+```json
+{
+  "sequence_type": "nurture",
+  "email_number": 1,
+  "subject": "The Essential Guide to Your New Tampa Neighborhood",
+  "preview_text": "Discover what makes your new neighborhood perfect...",
+  "body": "Email HTML/markdown body...",
+  "cta_text": "Learn More",
+  "cta_url": "https://...",
+  "send_after_days": 0
+}
+```
+
+---
+
+## Configuration
+
+**Real Estate Domain Knowledge:**
+- Automatically normalizes common real estate terms during cleaning
+- Preserves important acronyms: HOA, MLS, SOLD, PENDING
+- Expands abbreviations: "sq ft", "bedroom", "bathroom"
+
+**Email Generation:**
+- Distinct subject lines per email (no repetition)
+- CTA optimization per sequence type
+- Send timing recommendations (delay_days)
+
+---
+
+## Related
+
+- [Content MCP Tools](/mcp-tools/content) — MCP server wrappers
+- [YouTube Tools](/python-tools/youtube-tools) — Produces transcripts
+- [Guide Tools](/python-tools/guide-tools) — Can feed into email sequences

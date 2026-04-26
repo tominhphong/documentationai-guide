@@ -1,0 +1,566 @@
+---
+title: "Python Conventions"
+description: "Code standards for Python scripts in tools/ and data processing."
+last_reviewed: 2026-04-26
+type: reference
+audience: ai-agent-primary
+use_case: ["extend-python-tools", "write-new-scripts", "maintain-tool-quality"]
+keywords: [Python, snake_case, CLI-tools, error-handling, type-hints, testing]
+---
+
+# Python Conventions
+
+> Source: `.claude/rules/python-conventions.md`
+
+This guide defines coding standards for Python scripts in `tools/` and any data processing scripts. Follow these conventions when adding or extending tools.
+
+## Style & Naming
+
+### Naming Conventions
+
+| Type | Convention | Example |
+|------|-----------|---------|
+| **Files** | snake_case | `create_knowledge_base.py`, `search_contacts.py` |
+| **Functions** | snake_case | `fetch_transcript()`, `search_knowledge_base()` |
+| **Variables** | snake_case | `user_input`, `vector_store`, `max_results` |
+| **Constants** | UPPER_SNAKE_CASE | `MAX_RETRIES`, `API_TIMEOUT_SECONDS`, `DEFAULT_CHUNK_SIZE` |
+| **Classes** | PascalCase | `YouTubeTranscriptFetcher`, `KnowledgeBaseManager` |
+
+### Main Guard Pattern
+
+Every script must use the `if __name__ == "__main__":` guard:
+
+**✓ Correct:**
+```python
+def process_contacts(csv_path: str) -> list[dict]:
+    """Load and parse contacts from CSV."""
+    # implementation
+    pass
+
+if __name__ == "__main__":
+    import sys
+    if len(sys.argv) < 2:
+        print("Usage: python process_contacts.py <csv_path>")
+        sys.exit(1)
+    
+    contacts = process_contacts(sys.argv[1])
+    print(f"Processed {len(contacts)} contacts")
+```
+
+**✗ Avoid:**
+```python
+# Code runs immediately on import, breaking reusability
+contacts = process_contacts("data.csv")
+print(f"Processed {len(contacts)} contacts")
+```
+
+### Type Hints on All Functions
+
+Every function signature must include type hints:
+
+**✓ Correct:**
+```python
+def search_knowledge_base(
+    query: str,
+    limit: int = 10
+) -> list[dict]:
+    """Search vector database for query.
+    
+    Args:
+        query: Search string
+        limit: Max results to return
+        
+    Returns:
+        List of matching documents with scores
+    """
+    # implementation
+    pass
+```
+
+**✗ Avoid:**
+```python
+def search_knowledge_base(query, limit=10):
+    # No type hints
+    pass
+```
+
+### Docstrings (Google Style)
+
+Public functions must have docstrings:
+
+**✓ Correct:**
+```python
+def ingest_youtube_channel(
+    channel_handle: str,
+    output_dir: str
+) -> dict:
+    """Download and index transcripts from a YouTube channel.
+    
+    Args:
+        channel_handle: Channel handle (e.g., "@janesmithrealty")
+        output_dir: Directory to save vector database
+        
+    Returns:
+        Summary dict with:
+            - videos_processed (int)
+            - chunks_created (int)
+            - db_path (str)
+            
+    Raises:
+        ValueError: If channel handle is invalid
+        IOError: If output directory is not writable
+    """
+    pass
+```
+
+## Project Structure
+
+### tools/ Organization
+
+Each subdirectory contains standalone scripts, NOT a monolithic package:
+
+```
+tools/
+├── rag_tools/
+│   ├── create_knowledge_base.py
+│   ├── search_knowledge_base.py
+│   ├── ingest_youtube_channel.py
+│   └── requirements.txt             # Dependencies specific to this tool group
+├── youtube_tools/
+│   ├── download_transcripts.py
+│   ├── extract_metadata.py
+│   └── requirements.txt
+├── content_tools/
+│   ├── generate_blog_post.py
+│   ├── generate_email_sequence.py
+│   └── requirements.txt
+├── csv_tools/
+├── guide_tools/
+├── crm_tools/
+├── utilities/
+│   ├── logger.py                    # Shared logging setup
+│   ├── config_loader.py             # Load env vars and config
+│   └── validators.py                # Common validation functions
+└── requirements.txt                 # All dependencies
+```
+
+**Philosophy:** Scripts are callable independently, not imported from each other (minimal coupling). Shared functions go in `utilities/`.
+
+### Configuration & Secrets
+
+**Use environment variables, not hardcoded values:**
+
+**✓ Correct:**
+```python
+import os
+from dotenv import load_dotenv
+
+load_dotenv()  # Load from .env file
+
+crm_api_key = os.getenv("CRM_API_KEY")
+if not crm_api_key:
+    raise ValueError("CRM_API_KEY not set in .env")
+
+client = CRMClient(api_key=crm_api_key)
+```
+
+**✗ Avoid:**
+```python
+# Hardcoded credentials in source code
+client = CRMClient(api_key="ghl-abc123xyz")
+```
+
+**.env File (never committed):**
+```bash
+CRM_API_KEY=your-key-here
+ANTHROPIC_API_KEY=sk-xxx
+SUPABASE_URL=https://project.supabase.co
+SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+### File Operations with pathlib
+
+Use `pathlib.Path` instead of `os.path`:
+
+**✓ Correct:**
+```python
+from pathlib import Path
+
+def save_results(output_dir: str, filename: str) -> Path:
+    """Save results to a file."""
+    output_path = Path(output_dir) / filename
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(json.dumps(results))
+    return output_path
+```
+
+**✗ Avoid:**
+```python
+import os
+
+def save_results(output_dir, filename):
+    output_path = os.path.join(output_dir, filename)
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    # ...
+```
+
+### CLI Arguments with argparse
+
+Scripts with CLI interfaces must use `argparse`:
+
+**✓ Correct:**
+```python
+import argparse
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Download and index YouTube channel transcripts"
+    )
+    parser.add_argument(
+        "channel_handle",
+        help="YouTube channel handle (e.g., @janesmithrealty)"
+    )
+    parser.add_argument(
+        "--output-dir",
+        default="~/real-estate-ai/knowledge_bases/vectors",
+        help="Directory to save vector database"
+    )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=None,
+        help="Max videos to process"
+    )
+    
+    args = parser.parse_args()
+    ingest_channel(args.channel_handle, args.output_dir, args.limit)
+
+if __name__ == "__main__":
+    main()
+```
+
+## Dependencies
+
+### Python Version
+
+- **Minimum:** Python 3.10+
+- **Recommended:** Python 3.12
+
+### Dependency Categories
+
+**RAG / Knowledge Base:**
+- `chromadb` — Vector database
+- `sentence-transformers` — Embeddings
+- `langchain` — LLM toolkit
+- `pydantic` — Data validation
+
+**CRM / API Calls:**
+- `requests` — HTTP client
+- `python-dotenv` — Environment variable loading
+
+**YouTube / Media:**
+- `yt-dlp` — YouTube transcript extraction (system dependency via Homebrew, not pip)
+- `ffmpeg-python` — Audio/video processing
+
+**Content Generation:**
+- `transformers` — NLP models
+- `torch` — PyTorch (optional, for local embeddings)
+
+**Data Processing:**
+- `pandas` — CSV/data manipulation
+- `openpyxl` — Excel support
+
+**Testing:**
+- `pytest` — Test framework
+- `pytest-cov` — Coverage reporting
+- `responses` — Mock HTTP requests
+
+### requirements.txt Example
+
+```
+chromadb==0.4.20
+sentence-transformers==2.2.2
+langchain==0.1.0
+pydantic==2.0.0
+requests==2.31.0
+python-dotenv==1.0.0
+pytest==7.4.0
+pytest-cov==4.1.0
+responses==0.23.3
+```
+
+**Install for development:**
+```bash
+pip install -r requirements.txt
+```
+
+## Error Handling
+
+### Use Specific Exception Types
+
+**✓ Correct:**
+```python
+def search_knowledge_base(query: str) -> list[dict]:
+    """Search vector database."""
+    try:
+        results = vector_store.search(query)
+        return results
+    except ValueError as e:
+        # Handle validation errors (e.g., empty query)
+        logger.error(f"Invalid search query: {e}")
+        raise
+    except Exception as e:
+        # Log unexpected errors with context
+        logger.exception(f"Unexpected error searching knowledge base: {e}")
+        raise RuntimeError(f"Search failed: {e}") from e
+```
+
+**✗ Avoid:**
+```python
+def search_knowledge_base(query):
+    try:
+        return vector_store.search(query)
+    except:  # Bare except catches everything, hides bugs
+        pass
+```
+
+### Logging Instead of Print
+
+Use the `logging` module for production code:
+
+**✓ Correct:**
+```python
+import logging
+
+logger = logging.getLogger(__name__)
+
+def ingest_channel(channel_handle: str) -> dict:
+    logger.info(f"Starting ingestion for channel: {channel_handle}")
+    
+    try:
+        transcripts = download_transcripts(channel_handle)
+        logger.info(f"Downloaded {len(transcripts)} transcripts")
+        
+        results = create_knowledge_base(transcripts)
+        logger.info(f"Created {results['chunks_created']} vector chunks")
+        return results
+        
+    except Exception as e:
+        logger.error(f"Ingestion failed: {e}", exc_info=True)
+        raise
+```
+
+**✗ Avoid:**
+```python
+print("Starting ingestion...")
+print(f"Downloaded {len(transcripts)} transcripts")  # Not captured for debugging
+```
+
+## Structured Results
+
+Return structured data (dict or dataclass), not raw strings:
+
+**✓ Correct:**
+```python
+from dataclasses import dataclass
+
+@dataclass
+class SearchResult:
+    query: str
+    matches: list[dict]
+    total_found: int
+    confidence_scores: list[float]
+    search_time_ms: float
+
+def search_knowledge_base(query: str) -> SearchResult:
+    """Search and return structured result."""
+    start_time = time.time()
+    matches = vector_store.search(query)
+    elapsed = (time.time() - start_time) * 1000
+    
+    return SearchResult(
+        query=query,
+        matches=matches,
+        total_found=len(matches),
+        confidence_scores=[m["score"] for m in matches],
+        search_time_ms=elapsed
+    )
+```
+
+**✗ Avoid:**
+```python
+def search_knowledge_base(query):
+    matches = vector_store.search(query)
+    return f"Found {len(matches)} results for '{query}'"  # String is hard to parse
+```
+
+## Testing
+
+### Test File Location & Naming
+
+Tests live alongside source files with `test_` prefix:
+
+```
+tools/
+├── rag_tools/
+│   ├── create_knowledge_base.py
+│   ├── test_create_knowledge_base.py    # Tests for this module
+│   ├── search_knowledge_base.py
+│   └── test_search_knowledge_base.py
+```
+
+### Using pytest
+
+**✓ Correct:**
+```python
+import pytest
+from create_knowledge_base import ingest_documents
+
+def test_ingest_documents_with_valid_path(tmp_path):
+    """Test successful document ingestion."""
+    # Create a test document
+    doc_path = tmp_path / "test.txt"
+    doc_path.write_text("Sample content")
+    
+    result = ingest_documents(str(tmp_path))
+    
+    assert result["success"] is True
+    assert result["chunks_created"] > 0
+
+def test_ingest_documents_with_invalid_path():
+    """Test error handling for missing directory."""
+    with pytest.raises(FileNotFoundError):
+        ingest_documents("/nonexistent/path")
+
+def test_search_returns_scored_results(mock_vector_store):
+    """Test search result structure."""
+    results = search_knowledge_base("test query")
+    
+    assert isinstance(results, SearchResult)
+    assert results.query == "test query"
+    assert all(0 <= score <= 1 for score in results.confidence_scores)
+```
+
+**Run tests:**
+```bash
+pytest                         # Run all tests
+pytest -v                      # Verbose output
+pytest --cov tools/            # With coverage report
+pytest tests/rag_tools/        # Specific directory
+```
+
+## Example: Complete Script
+
+```python
+"""
+ingest_youtube_channel.py
+
+Download transcripts from a YouTube channel and create a searchable
+knowledge base using ChromaDB.
+"""
+
+import argparse
+import logging
+from pathlib import Path
+import time
+
+from yt_dlp import YoutubeDL
+from sentence_transformers import SentenceTransformer
+import chromadb
+
+logger = logging.getLogger(__name__)
+
+def download_transcripts(
+    channel_handle: str,
+    max_videos: int | None = None
+) -> list[dict]:
+    """Download transcripts from YouTube channel.
+    
+    Args:
+        channel_handle: Channel handle (e.g., "@janesmithrealty")
+        max_videos: Max videos to download (None = all)
+        
+    Returns:
+        List of video dicts with title, transcript, date
+        
+    Raises:
+        ValueError: If channel handle is invalid
+    """
+    if not channel_handle.startswith("@"):
+        raise ValueError(f"Invalid channel handle: {channel_handle}")
+    
+    logger.info(f"Downloading transcripts from {channel_handle}")
+    
+    # Implementation here
+    pass
+
+def create_knowledge_base(
+    transcripts: list[dict],
+    output_dir: str
+) -> dict:
+    """Create vector database from transcripts.
+    
+    Args:
+        transcripts: List of transcript dicts
+        output_dir: Where to save the database
+        
+    Returns:
+        Summary dict with chunks_created, db_path, etc.
+    """
+    output_path = Path(output_dir)
+    output_path.mkdir(parents=True, exist_ok=True)
+    
+    # Implementation here
+    pass
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Ingest YouTube channel into knowledge base"
+    )
+    parser.add_argument("channel_handle", help="Channel handle (@username)")
+    parser.add_argument(
+        "--output-dir",
+        default="~/real-estate-ai/knowledge_bases/vectors",
+        help="Output directory for vector DB"
+    )
+    parser.add_argument(
+        "--max-videos",
+        type=int,
+        default=None,
+        help="Max videos to process"
+    )
+    
+    args = parser.parse_args()
+    
+    try:
+        transcripts = download_transcripts(
+            args.channel_handle,
+            args.max_videos
+        )
+        logger.info(f"Downloaded {len(transcripts)} transcripts")
+        
+        result = create_knowledge_base(transcripts, args.output_dir)
+        logger.info(f"Created knowledge base: {result['db_path']}")
+        
+        print(f"✓ Ingestion complete: {result['chunks_created']} chunks")
+        
+    except Exception as e:
+        logger.error(f"Ingestion failed: {e}", exc_info=True)
+        print(f"✗ Error: {e}")
+        return 1
+    
+    return 0
+
+if __name__ == "__main__":
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+    )
+    exit(main())
+```
+
+## Related Topics
+
+- [Node.js Conventions](/core-rules/node-conventions)
+- [Architecture & Components](/framework/architecture)
+- [Repository Layout](/framework/repo-layout)

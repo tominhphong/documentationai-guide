@@ -1,0 +1,98 @@
+---
+title: "Framework Overview"
+description: "What the real estate AI framework is and what components it provides."
+last_reviewed: 2026-04-26
+type: overview
+audience: ai-agent-primary
+use_case: ["understand-framework-scope", "discover-available-agents", "explore-capabilities"]
+keywords: [agents, MCP, tools, Python, knowledge-base, real-estate]
+---
+
+# Framework Overview
+
+> Source: `README.md`
+
+The Claude Code Real Estate Framework is an AI assistant architecture designed for real estate agents who use YouTube as their primary lead source. It combines specialized agents, MCP tool integration, Python data processing, and pre-loaded marketing knowledge to automate the content-to-client pipeline: from video creation through content repurposing, lead nurturing, CRM operations, and client communication.
+
+Everything runs locally on your Mac. No cloud processing, no monthly fees beyond Claude Code itself. Your data stays on your computer.
+
+## What's Included
+
+### 9 Specialized Agents
+
+Each agent handles a specific phase of your workflow:
+
+- **youtube-video-pipeline** — Full lifecycle: research competitor coverage, create filming outlines, convert transcripts to teleprompter scripts, execute post-production (blog, emails, social clips, YouTube metadata)
+- **youtube-to-blog** — Convert video transcripts into WordPress-ready SEO blog posts with embedded video, H2/H3 structure, FAQ sections, and SEO reports
+- **email-writer** — Generate lead nurture sequences using Russell Brunson's Daily Seinfeld framework (story-hook-value-invite pattern, 200 words max, plain text)
+- **teleprompter** — Convert video outlines into delivery scripts with timing markers, pacing notes (`[SLOW]`, `[PAUSE 2s]`), emphasis cues, and reading-speed calibration
+- **content-repurposer** — Take any content source (blog, video, email) and produce multiple formats while maintaining your voice
+- **voice-processor** — Ingest iPhone voice note transcripts, extract action items and instructions, organize output
+- **crm-agent** — Search/create/update contacts, send SMS/email, manage pipeline stages, handle escalations
+- **customer-response** — Draft style-matched client replies by querying conversation history and knowledge base, with inquiry classification
+- **relocation-guide-generator** — Create personalized relocation guides from your content using questionnaire-driven approach, output structured JSON for professional PDF production
+
+### 6 MCP Tool Categories
+
+<CardGroup cols={2}>
+  <Card title="Knowledge Base (RAG)" icon="database">
+    Search YouTube transcripts, documents, competitor content, and pre-loaded marketing frameworks
+  </Card>
+  <Card title="CRM Operations" icon="contacts">
+    GoHighLevel integration for contact/pipeline management, messaging, tagging
+  </Card>
+  <Card title="Media Processing" icon="video">
+    YouTube transcript extraction, audio/video processing with yt-dlp and ffmpeg
+  </Card>
+  <Card title="Content Generation" icon="pen">
+    Blog post, email, guide, and social clip generation with templates
+  </Card>
+  <Card title="Data Tools" icon="table">
+    CSV import, contact list standardization, duplicate detection, data cleanup
+  </Card>
+  <Card title="Browser Automation" icon="globe">
+    Scrape websites, manage Hostinger hosting, deploy to Vercel (via MCP servers)
+  </Card>
+</CardGroup>
+
+### 6 Python Tool Categories
+
+- **rag_tools/** — Create and query vector databases for knowledge base search
+- **youtube_tools/** — Download transcripts, extract metadata, process video data
+- **content_tools/** — Generate blog posts, emails, social media content
+- **csv_tools/** — Import, clean, deduplicate contact data
+- **guide_tools/** — Build relocation guides, convert formats (markdown to Word/PDF)
+- **crm_tools/** — REST client for GoHighLevel API operations
+
+### 3 Marketing Frameworks (Pre-Loaded)
+
+<Note>
+These frameworks are included in `knowledge_bases/books/` as vector-searchable databases. Claude can reference them when generating content, emails, and strategy.
+</Note>
+
+**Alex Hormozi frameworks:**
+- $100M Offers, $100M Leads, Pricing Playbook, Ad Framework, "Why You Will Never" Framework, New vs Old Framework
+
+**Russell Brunson frameworks:**
+- DotCom Secrets, Traffic Secrets, Lead Magnet & Squeeze Page Strategy, Backyard Blueprint
+
+**Channel Junkies:**
+- Pre-built YouTube strategy methodology (vector database)
+
+## Design Principles
+
+**AS-IS documentation** — This framework documents how the system actually works, not how it could work.
+
+**Paraphrase, not copy** — Guides pull knowledge from the framework but use their own language and examples.
+
+**ClaudeKit-first** — All integrations and tool connections flow through Model Context Protocol (MCP) and Claude Code, not through external web UIs.
+
+**File ownership discipline** — Each agent has an `.md` file in `.claude/agents/`, each rule lives in `.claude/rules/`, each skill in `.claude/skills/`. No monolithic instruction files.
+
+**Frontmatter discipline** — Every agent and skill includes YAML metadata: task type, preconditions, output format, and success criteria.
+
+## Related Topics
+
+- [Architecture & Components](/framework/architecture)
+- [Design Principles](/framework/principles)
+- [Directory Structure Tour](/framework/repo-layout)

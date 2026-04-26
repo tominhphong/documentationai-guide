@@ -1,0 +1,80 @@
+---
+title: "Changelog"
+description: "Append-only history of significant changes to the realtor-os-wiki — content drops, conventions, infra, and validation hardening."
+last_reviewed: 2026-04-26
+type: changelog
+audience: both
+use_case: ["track-site-evolution", "audit-content-drops"]
+keywords: [changelog, history, releases, content-drops, sprint-log]
+---
+
+# Changelog
+
+Append-only log of significant changes. Newest entries first. Source of truth for what shipped when.
+
+## 2026-04-26 — Phase 2: Initial Content Drop (46 pages)
+
+Parallel content generation by 4 docs subagents. All MDX validated, frontmatter compliant, 0 broken links.
+
+**Added (46 MDX pages):**
+
+- `framework/` (6) — overview, architecture, principles, repo-layout, setup-overview, desktop-setup
+- `core-rules/` (4) — real-estate-domain, content-style, node-conventions, python-conventions
+- `workflows/` (5) — 1-video-5-assets, voice-cloning-pipeline, lead-magnet-generation, content-multiplier, customer-response-flow
+- `agent-instructions/` (9) — email-writer, customer-response, youtube-to-blog, youtube-video-pipeline, content-repurposer, teleprompter, voice-processor, relocation-guide-generator, crm-agent
+- `mcp-tools/` (6) — rag, youtube, content, crm, csv, guide
+- `python-tools/` (6) — rag-tools, youtube-tools, content-tools, crm-tools, csv-tools, guide-tools
+- `frameworks/` (3) — brunson-daily-seinfeld, hormozi-value-equation, channel-junkies-hooks (paraphrased only)
+- `knowledge-qa/` (4) — glossary, tools-catalog, skill-quick-reference, mdx-gotchas
+- `help-center/` (3) — setup-guide, troubleshooting, faq
+- `changelog.mdx` (this file)
+
+**Validation:**
+
+- `pre-commit-check.sh` — PASS (7/7 gotchas clean)
+- `check-frontmatter.sh` — PASS (48 files, 7-field frontmatter compliant)
+- `check-links.sh` — PASS (214 internal links, 0 broken)
+
+**Source:** Upstream `claude-code-real-estate-framework` documented AS-IS — 9 agents, 6 MCP tool groups, 6 Python tool categories, 3 marketing frameworks (paraphrased).
+
+---
+
+## 2026-04-26 — Phase 4 + 5: Site Live + MCP Indexed
+
+Site deployed to Documentation.AI dashboard.
+
+**Live:**
+- URL: https://realtor-os.documentationai.com (password-protected)
+- Brand color: emerald `#10B981` light / `#34D399` dark
+- MCP endpoint: `/_mcp` indexed and queryable
+- Verified: 3/3 sample queries returned correct content from `introduction.mdx` and `quickstart.mdx`
+
+**Repo migration:**
+- Source repo renamed from `realtor-os-wiki` to `documentationai-guide` (auto-provisioned by Documentation.AI dashboard).
+- Original `realtor-os-wiki` GitHub repo deleted (dashboard couldn't see it due to GitHub App scope).
+- Content migrated; CI green on first deploy.
+
+---
+
+## 2026-04-25 — Phase 1: Scaffold
+
+Initial repository scaffold pushed.
+
+**Added:**
+- 9 content folders (`framework/`, `core-rules/`, `workflows/`, `agent-instructions/`, `mcp-tools/`, `python-tools/`, `frameworks/`, `knowledge-qa/`, `help-center/`)
+- Top-level `introduction.mdx`, `quickstart.mdx`
+- Validation scripts: `pre-commit-check.sh`, `check-frontmatter.sh`, `check-links.sh`, `check-stale.sh`
+- CI workflow: `.github/workflows/mdx-validate.yml` (4 parallel jobs)
+- Governance: `CLAUDE.md`, `AGENTS.md`, `CODEOWNERS`
+- `documentation.json` — Mintlify config with emerald brand color
+
+**Commit:** `6798559` — 22 files / 948 insertions. Validations PASS.
+
+---
+
+## Conventions
+
+- **Date format:** ISO 8601 (`YYYY-MM-DD`)
+- **Append-only:** never rewrite history; correct via new entry
+- **Update on:** every merged PR that adds/removes pages or changes site-wide conventions
+- **Cross-reference:** link to the relevant page slug, not the PR

@@ -1,0 +1,358 @@
+---
+title: "Frequently Asked Questions"
+description: "10+ common questions: AS-IS docs, customization, paraphrase rule, reporting issues, updates."
+last_reviewed: 2026-04-26
+type: reference
+audience: both
+use_case: ["find-quick-answers", "understand-conventions"]
+keywords: [FAQ, questions, AS-IS, customization, paraphrase, updates]
+---
+
+## General Questions
+
+### What is the realtor-os-wiki?
+
+The realtor-os-wiki is an operational knowledge base for AI agents and Phong's real estate automation framework. It documents:
+- Marketing frameworks (Daily Seinfeld, Value Equation, Channel Junkies hooks)
+- Agent skills and tools (email-writer, cma-generator, customer-response, etc.)
+- System architecture and workflows
+- Setup and troubleshooting guides
+
+It is NOT a public-facing marketing site—it's an internal reference for agents and developers.
+
+---
+
+### What does "AS-IS docs" mean?
+
+AS-IS documentation reflects the current state of the system without editorializing or describing how things "should be." If the code behaves one way but the spec says something else, AS-IS docs document the actual behavior. This ensures no discrepancies between what the docs claim and what happens in reality.
+
+When a change is made to the system, AS-IS docs are updated immediately. They are the source of truth.
+
+---
+
+### Can I customize the framework?
+
+Yes. The framework is modular:
+- **Email sequences:** Customize via Daily Seinfeld principles; change tone, topics, frequency
+- **Video hooks:** Adapt Channel Junkies patterns to your niche or audience
+- **CMA analysis:** Add local market twists to the standard format
+- **Knowledge bases:** Add your own neighborhood data, client history, market reports
+
+However, **do not modify core system files** (MCP server, validation scripts, frontmatter schema) without approval from Win 1 (Lead Architect).
+
+---
+
+### Why is content paraphrased instead of quoted?
+
+Three reasons:
+
+1. **Respect copyright:** Original marketing frameworks are published in books and courses. Direct quotes would violate copyright.
+2. **Clarity in context:** Paraphrasing lets us explain concepts specifically as they apply to the realtor-os framework, not generically.
+3. **Verification:** When you paraphrase, you prove you understand the concept, not just copy-pasted it.
+
+See [glossary → Paraphrase Rule](/knowledge-qa/glossary#paraphrase-rule) for limits (≤1 short quote per source, always attributed).
+
+---
+
+### Where do I report issues or bugs?
+
+1. **Documentation errors:** Create an issue in GitHub with the page URL and what's wrong.
+2. **MCP server bugs:** Check `mcp_server/` logs or GitHub Issues.
+3. **Python tool errors:** Check virtual environment is active, then share error traceback.
+4. **Setup issues:** See [troubleshooting](/help-center/troubleshooting) first, then report if unresolved.
+
+Include:
+- **What you were trying to do**
+- **What happened** (exact error message if available)
+- **What you expected**
+- **System info** (OS, Node/Python versions)
+
+---
+
+### How do I update the documentation?
+
+1. **Clone and branch:**
+   ```bash
+   git clone https://github.com/[repo-name]
+   git checkout -b my-update
+   ```
+
+2. **Edit MDX file:**
+   - Update `last_reviewed` date to today
+   - Make content changes
+   - Run validation: `bash scripts/pre-commit-check.sh ./`
+
+3. **Commit and push:**
+   ```bash
+   git add docs/
+   git commit -m "docs: update [page name]"
+   git push origin my-update
+   ```
+
+4. **Open pull request** on GitHub
+
+5. **Win 4 (Reference & QA) reviews and merges**
+
+---
+
+### How often are docs updated?
+
+Documentation is updated:
+- **Immediately:** When code changes or a bug is fixed
+- **Weekly:** Friday review of all pages modified that week
+- **Monthly:** Sweep for pages unreviewed >90 days (CI flags these as stale)
+
+Check `last_reviewed` date in each page's frontmatter to see when it was last verified.
+
+---
+
+## Framework & Concepts
+
+### What's the difference between Daily Seinfeld and Value Equation?
+
+**Daily Seinfeld** is a storytelling technique for emails. It focuses on: micro-story → pivot → soft CTA. The goal is engagement and relationship-building through relatable narratives.
+
+**Value Equation** is a pricing/positioning framework. It focuses on: what the customer wants (Dream Outcome) vs. what it costs them (time, effort). The goal is to explain why a service is valuable.
+
+They work together: use Daily Seinfeld to tell stories that build credibility, then use Value Equation principles to explain why your service is worth their time.
+
+See [brunson-daily-seinfeld](/frameworks/brunson-daily-seinfeld) and [hormozi-value-equation](/frameworks/hormozi-value-equation).
+
+---
+
+### How do Channel Junkies hooks differ from curiosity gaps?
+
+**Curiosity gap** is a specific hook pattern: open a question, don't answer it immediately, keep the viewer watching to close the gap.
+
+**Channel Junkies hooks** is a broader framework with 5 patterns: curiosity gap, problem-promise, comparison, momentum, and honest take. Curiosity gap is one of these patterns.
+
+See [channel-junkies-hooks](/frameworks/channel-junkies-hooks).
+
+---
+
+### What is a "skill" and how does it differ from a "tool"?
+
+**Tool:** A software utility (MCP server, Python script, command-line command). Example: `cma-engine.py` (Python tool), `mcp_property_database` (MCP tool).
+
+**Skill:** A documented workflow that an agent invokes to accomplish a task. A skill typically combines multiple tools, applies domain knowledge, and produces a specific output format. Example: `cma-generator` skill (uses `cma-engine.py` tool, queries property database tool, produces CMA summary).
+
+Think: tools are primitives; skills are higher-level procedures.
+
+See [glossary → Skill](/knowledge-qa/glossary#skill) and [skill-quick-reference](/knowledge-qa/skill-quick-reference).
+
+---
+
+## Setup & Troubleshooting
+
+### Why do I need a Python virtual environment?
+
+A virtual environment isolates Python dependencies for this project from system Python. Benefits:
+
+- **Prevents conflicts:** Different projects can use different versions of the same library
+- **Reproducibility:** Everyone on the team uses exact same versions (from requirements.txt)
+- **Safety:** You don't accidentally break system Python or other projects
+
+If you skip venv and install globally with `pip`, you risk breaking other projects.
+
+See [setup-guide → Step 3](/help-center/setup-guide#step-3-install-python-virtual-environment--dependencies).
+
+---
+
+### My MCP server is running, but Claude Desktop still doesn't see the tools?
+
+This is usually a path or restart issue:
+
+1. **Check server is really running:**
+   ```bash
+   curl http://localhost:3000/health
+   # Should return: {"status":"ready"}
+   ```
+
+2. **Check MCP config path is absolute and correct:**
+   - Claude Desktop → Settings → Developer → MCP servers
+   - Verify path matches: `ls /exact/path/from/config/mcp_server/index.js`
+
+3. **Completely restart Claude Desktop:**
+   - Cmd+Q (quit)
+   - Wait 5 seconds
+   - Reopen
+
+4. **If still not working:** See [troubleshooting → Claude Desktop Doesn't See MCP Tools](/help-center/troubleshooting#claude-desktop-doesnt-see-mcp-tools).
+
+---
+
+### What does "last_reviewed" mean and when do I update it?
+
+`last_reviewed` is the date in frontmatter indicating when the page content was last verified against the actual system. Update it whenever you:
+
+- Edit content to correct errors or clarify language
+- Verify code examples still work (without changing the docs)
+- Update screenshots or examples
+- Confirm links still resolve
+
+**Do NOT update** if you're just reading the page (viewing is not verification).
+
+**Why it matters:** Pages unreviewed >90 days are flagged by CI as stale and candidates for deprecation.
+
+---
+
+### Can I use HTML in MDX files?
+
+Partially. MDX supports:
+- **Markdown syntax:** `# Headers`, `**bold**`, `[links]()`
+- **React components:** `<Callout>`, `<Steps>`, `<Tabs>`, `<Card>`
+- **Inline code:** `` `code` ``
+- **Code blocks:** `` ```language ... ``` ``
+
+MDX does NOT support:
+- Raw HTML tags (`<div>`, `<span>`)
+- `<iframe>`, `<script>`
+- HTML comments (`<!-- -->` — use `{/* */}` instead)
+
+See [mdx-gotchas](/knowledge-qa/mdx-gotchas) for common errors.
+
+---
+
+### How do I add a new page to the wiki?
+
+1. **Create MDX file in correct folder:**
+   - Frameworks: `frameworks/my-page.mdx`
+   - Knowledge-QA: `knowledge-qa/my-page.mdx`
+   - Help-Center: `help-center/my-page.mdx`
+
+2. **Add frontmatter:**
+   ```yaml
+   ---
+   title: "My Page Title"
+   description: "One-line summary (50-120 chars)."
+   last_reviewed: 2026-04-26
+   ---
+   ```
+
+3. **Write content** (see [glossary](/knowledge-qa/glossary) for terms and conventions)
+
+4. **Run validation:**
+   ```bash
+   bash scripts/pre-commit-check.sh my-page.mdx
+   ```
+
+5. **Submit pull request** (Win 1 handles documentation.json nav updates)
+
+---
+
+### Can I edit someone else's page?
+
+It depends on **file ownership**:
+
+- **Your scope:** Yes, edit directly
+- **Another scope:** Submit a **cross-scope request** to the page owner (or Win 1)
+
+Example: Win 4 wants to add a troubleshooting note to a Win 2 framework page:
+- Don't edit directly
+- Create an issue or message Win 2 (or submit pull request with Win 2 approval)
+- Win 2 merges the change
+
+File ownership prevents merge conflicts. See [glossary → File Ownership](/knowledge-qa/glossary#file-ownership).
+
+---
+
+## Content & Style
+
+### What's the target audience for this wiki?
+
+**Primary:** AI agents (email-writer, youtube-video-pipeline, cma-generator, etc.)
+
+**Secondary:** Phong (creator) for review and platform ownership decisions
+
+**Not intended for:** End customers, public marketing, external documentation
+
+This affects tone (technical, concise) and scope (internal operations, not user-facing docs).
+
+---
+
+### How long should pages be?
+
+**Target line counts:**
+
+| Type | Lines |
+|------|-------|
+| Overview | 80–150 |
+| Reference | 100–250 |
+| Workflow | 120–200 |
+| Example/Case Study | 200–400 |
+
+**Rule:** If a page exceeds 250 lines, consider splitting into multiple linked pages. Long pages are harder to maintain and less scannable.
+
+---
+
+### What's the style guide?
+
+No official style guide, but follow these conventions:
+
+- **Headings:** H1 is auto-rendered from frontmatter title; start body with H2
+- **Lists:** Use `- item` for bullets; ` - [ ]` for checkboxes (not the Unicode square box character)
+- **Code:** Use triple-backtick `` ``` `` with language tag (bash, mdx, yaml, json)
+- **Links:** Absolute paths from root: `/folder/page` (no .mdx extension)
+- **Tone:** Clear, concise, technical; no marketing language
+- **Examples:** Include code before/after; show actual behavior
+
+See [mdx-gotchas](/knowledge-qa/mdx-gotchas) for what NOT to do.
+
+---
+
+### Why are some pages in .mdx format and not .md?
+
+MDX (Markdown + JSX) allows embedding React components like `<Callout>`, `<Steps>`, `<Tabs>`. This enables richer formatting than plain Markdown. All wiki pages use `.mdx` to support these components.
+
+---
+
+## Miscellaneous
+
+### How do I search the wiki?
+
+**In Claude Desktop:**
+```
+@mcp_search What is a curiosity gap?
+```
+
+**In GitHub:**
+- Use the search box (top of repo page)
+- Advanced search: `in:path frameworks/` (search specific folder)
+
+**Locally:**
+```bash
+grep -r "curiosity gap" docs/
+```
+
+---
+
+### Is there a roadmap for new features?
+
+Check the **project roadmap** (if available at `/docs/development-roadmap.md`) or **GitHub Issues** labeled "enhancement" or "roadmap".
+
+For feature requests, open an issue with:
+- What you want to add
+- Why it would be useful
+- Suggested scope and priority
+
+---
+
+### How do I cite this wiki in external content?
+
+Use formal citation format:
+
+**MLA:** "Realtor OS Wiki." Documentation.AI, 2026, realtor-os.documentationai.com.
+
+**APA:** Documentation.AI. (2026). Realtor OS Wiki. Retrieved from realtor-os.documentationai.com
+
+For specific pages, include the page title and URL.
+
+---
+
+## Still Have Questions?
+
+- **Check [glossary](/knowledge-qa/glossary)** for term definitions
+- **Check [troubleshooting](/help-center/troubleshooting)** for setup/error issues
+- **Check [setup-guide](/help-center/setup-guide)** for installation steps
+- **Open a GitHub issue** with details and context
+

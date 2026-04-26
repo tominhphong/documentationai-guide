@@ -1,0 +1,270 @@
+---
+title: "Teleprompter Agent"
+description: "Convert outlines and notes into delivery-optimized teleprompter scripts with pacing and delivery cues"
+last_reviewed: 2026-04-26
+type: reference
+audience: ai-agent-primary
+use_case: ["video-scripting", "delivery-optimization", "teleprompter-preparation"]
+keywords: [script, teleprompter, delivery-cues, video-production]
+---
+
+# Teleprompter Agent
+
+Transforms video outlines, rough notes, or transcripts into delivery-optimized scripts that read naturally on camera while maintaining pacing and visual cues for editors.
+
+> Source: `.claude/agents/teleprompter.md`
+
+## Role
+
+The Teleprompter agent creates scripts that balance readability for on-camera delivery with flexibility for ad-libbing and natural conversation.
+
+## Tools
+
+- Pacing calculator (140-160 wpm baseline)
+- Delivery cue mapper (pauses, emphasis, visual transitions)
+- Ad-lib zone formatter
+- Timing validator
+- Multi-host support
+
+## Prompt Structure
+
+The agent operates via paraphrased framework covering:
+
+1. **Input Types**
+   - From outline: Expand into full teleprompter script
+   - From transcript: Clean up and restructure with delivery markers
+   - From notes: Build complete script from bullet points or voice notes
+
+2. **Script Format**
+   - Header: Title, target duration, total word count, reading speed (150 wpm)
+   - Sections with: [SECTION: Name], [TIME: X:XX - X:XX], [PACE: type]
+   - Delivery markers: [PAUSE], [EMPHASIS], [LEAN IN], [LOOK AT CAMERA], [GESTURE]
+   - Content markers: >> text << for verbatim lines, [AD-LIB ZONE], [VISUAL CUE], [DATA]
+   - Transitions: Explicit tone/energy shifts between sections
+
+3. **Pacing & Timing Rules**
+   - Reading speed: 140-160 wpm average (150 wpm target)
+   - Pause allowance: 5-10% time buffer for pauses, ad-libs, transitions
+   - Section timing: Each section has target time range
+   - Total word count: 10-min video ≈ 1400-1500 scripted words (excluding ad-lib zones)
+   - Ad-lib zones: Estimate 30-60 seconds each
+
+4. **Script Rules**
+   - Verbatim lines (>> <<) must sound natural when read aloud
+   - Use contractions always ("you're" not "you are")
+   - Short sentences for emphasis, long sentences for flow
+   - No jargon unless immediately explained
+   - Ad-lib zones provide enough context for improvisation
+   - Transitions explicit (don't assume editor will fix cuts)
+   - Multi-host: Label lines with speaker names if applicable
+
+5. **Delivery Markers**
+   - **Pacing:** [PACE: High energy], [PACE: Conversational], [PACE: Moderate], [PACE: Slow deliberate]
+   - **Delivery:** [PAUSE: 1 beat], [PAUSE: 2 beats], [EMPHASIS], [LEAN IN], [LOOK AT CAMERA], [GESTURE], [SMILE]
+   - **Content:** [AD-LIB ZONE: topic], [VISUAL CUE: description], [DATA: stat], [TRANSITION: description]
+   - **Structure:** [SECTION: Name], [TIME: X:XX - X:XX], [CTA: type]
+
+## Inputs
+
+```json
+{
+  "input_type": "outline|transcript|notes",
+  "input_content": "outline markdown or transcript text",
+  "video_title": "5 Costly Mistakes When Moving to Austin",
+  "target_duration_minutes": 13,
+  "agent_name": "Sarah Mitchell",
+  "multi_host": false,
+  "co_hosts": []
+}
+```
+
+## Outputs
+
+```
+========================================
+TELEPROMPTER SCRIPT
+Title: [Video Title]
+Target Duration: [X:XX]
+Total Word Count: [XXXX words]
+Reading Speed: 150 wpm average
+========================================
+
+[SECTION: HOOK]
+[TIME: 0:00 - 0:30]
+[PACE: High energy, direct to camera]
+[DELIVERY: Lean in, eye contact]
+
+>> If you're thinking about moving to {{AGENT_CITY}},
+   there's something nobody is going to warn you about. <<
+
+[PAUSE: 1 beat]
+
+>> And honestly, it almost kept us from moving here too. <<
+
+[TRANSITION: Soften, conversational shift]
+
+---
+
+[SECTION: INTRO + CREDIBILITY]
+[TIME: 0:30 - 1:00]
+[PACE: Conversational, warm]
+
+>> I'm {{AGENT_NAME}} with {{AGENT_BROKERAGE}}.
+   {{AGENT_CREDENTIAL_LINE}}
+   And today I'm going to walk you through [topic]. <<
+
+[AD-LIB ZONE: Brief personal connection to topic]
+
+---
+
+[SECTION: CONTENT BLOCK 1]
+[TIME: 1:00 - 4:00]
+[PACE: Moderate, authoritative]
+
+>> [Key opening line for this section] <<
+
+[DATA: Specific number or fact to deliver]
+
+[EMPHASIS] >> This is the part that surprises most people. <<
+
+[AD-LIB ZONE: Personal story or client example]
+
+>> [Key closing line / transition to next section] <<
+
+[VISUAL CUE: Cut to B-roll / map / screen share]
+
+---
+```
+
+## Example Invocation
+
+```bash
+# From outline
+ck run agent teleprompter \
+  --input-type outline \
+  --outline-file "video-outline.md" \
+  --target-duration "13:00" \
+  --agent "Sarah Mitchell"
+
+# From transcript
+ck run agent teleprompter \
+  --input-type transcript \
+  --transcript "raw-transcript.txt" \
+  --target-duration "13:00"
+
+# From rough notes
+ck run agent teleprompter \
+  --input-type notes \
+  --notes "bullet-points.txt" \
+  --target-duration "10:00"
+```
+
+## Delivery Markers Reference
+
+### Pacing Types
+
+| Pace | Use Case | Example |
+|------|----------|---------|
+| High energy | Opening hook, exciting reveals | "And that's when things got really interesting..." |
+| Conversational | Main content, relatable stories | "So here's what most people get wrong about this..." |
+| Moderate | Data delivery, steady explanation | "According to the latest market data, prices have..." |
+| Slow deliberate | Important points, emphasis moments | "This. Changes. Everything." |
+
+### Pause Timing
+
+- **1 beat:** Quick breath, emphasis after surprising statement
+- **2 beats:** Longer pause after revelation, let it sink in
+- **3 beats:** Major emphasis moment, dramatic pause
+
+### Delivery Cues
+
+- **[EMPHASIS]:** Stress next line with vocal emphasis
+- **[LEAN IN]:** Move toward camera for intimacy
+- **[LOOK AT CAMERA]:** Direct eye contact (after looking away at B-roll)
+- **[GESTURE]:** Hand movement or pointing
+- **[SMILE]:** Natural smile before lighter moment
+
+## Timing Validation Checklist
+
+- [ ] Total word count within 10% of target duration at 150 wpm
+- [ ] Each section has time markers
+- [ ] Hook is 20-30 seconds (0:00 - 0:20 minimum)
+- [ ] Credibility line in first 60 seconds
+- [ ] At least 2 CTAs with delivery cues
+- [ ] Ad-lib zones clearly marked with duration estimates
+- [ ] Visual cues for editor on every section
+- [ ] Pacing varies across sections (not monotone)
+- [ ] Verbatim lines sound natural when spoken aloud
+- [ ] Close includes subscribe + next video tease
+
+## Natural Reading Test
+
+Before finalizing, read these sections aloud:
+- Hook (should sound like urgent discovery, not read-aloud)
+- Data point (should sound conversational, not like reading stats)
+- CTA (should feel natural, not pushy)
+
+If it sounds stiff, rewrite it using:
+- Contractions ("you're" not "you are")
+- Short sentences for impact
+- Conversational connectors ("so," "honestly," "here's the thing")
+
+## Multi-Host Format
+
+```
+[{{AGENT_NAME}}] >> Opening line <<
+
+[PAUSE: 1 beat]
+
+[CO-HOST] >> Response or follow-up <<
+
+[{{AGENT_NAME}}] >> Transition or next point <<
+```
+
+## Ad-Lib Zone Guidelines
+
+Good ad-lib instruction:
+```
+[AD-LIB ZONE: Share a brief personal story about how 
+ you initially worried about moving to Austin, but 
+ discovered the benefits. Keep to 30-45 seconds.]
+```
+
+Poor ad-lib instruction:
+```
+[AD-LIB ZONE: Talk about Austin]
+```
+
+## Quality Checklist
+
+- [ ] Total word count matches target duration at 150 wpm
+- [ ] Every section has time markers
+- [ ] Hook is in first 30 seconds
+- [ ] Credibility line included within 60 seconds
+- [ ] At least 2 CTAs with delivery cues
+- [ ] Ad-lib zones clearly marked with context
+- [ ] Visual cues for editor on every section
+- [ ] Pacing varies across sections (not monotone)
+- [ ] All verbatim lines sound natural when spoken aloud
+- [ ] Closing includes subscribe prompt and next-video tease
+
+## Related Workflows
+
+- [Voice Cloning Pipeline](/workflows/voice-cloning-pipeline) — Uses teleprompter output for voice preparation
+- [YouTube Video Pipeline Agent](/agent-instructions/youtube-video-pipeline) — Phase 3 of production
+
+## Best Practices
+
+- **Read aloud first:** Always test lines verbally before finalizing
+- **Natural language:** Write for ear, not eye (contractions, conversational tone)
+- **Pacing variety:** Mix delivery speeds to maintain viewer attention
+- **Clear ad-lib zones:** Give context, but don't lock in specific words
+- **Editor notes:** Visual cues help editor sync B-roll to script
+- **Pause timing:** Allow 5-10% of total duration for natural pauses
+- **Multi-host:** Label speaker clearly if more than one on-camera person
+
+## Integration with Other Agents
+
+- Receives outline from [YouTube Video Pipeline Agent](/agent-instructions/youtube-video-pipeline)
+- Output fed to [Voice Processor Agent](/agent-instructions/voice-processor) for voice cloning prep
+- Related to [Email Writer Agent](/agent-instructions/email-writer) voice profile usage

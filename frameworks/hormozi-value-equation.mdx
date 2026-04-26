@@ -1,0 +1,82 @@
+---
+title: "Hormozi Value Equation"
+description: "Framework for pricing and positioning: (Dream Outcome × Perceived Likelihood) ÷ (Time Delay × Effort & Sacrifice)."
+last_reviewed: 2026-04-26
+type: reference
+audience: ai-agent-primary
+use_case: ["evaluate-service-value", "optimize-client-positioning"]
+keywords: [Hormozi, value equation, pricing, Dream Outcome, perceived likelihood]
+---
+
+> Source: `knowledge_bases/prompts/` (applied in email_sequence.md, customer_response.md, blog_from_transcript.md)
+
+## What It Is
+
+The Value Equation, attributed to Alex Hormozi (author of $100M Offers), is a mathematical framework for understanding how clients perceive the worth of your service or content:
+
+```
+Value = (Dream Outcome × Perceived Likelihood of Achievement) 
+         ÷ (Time Delay × Effort & Sacrifice Required)
+```
+
+In plain terms: clients perceive higher value when the outcome is desirable, they believe you can deliver it, it happens fast, and it requires minimal effort from them. Lower value results when outcomes feel distant, uncertain, slow to materialize, or demand significant client investment.
+
+As Hormozi writes, "The value of an offer is relative to the person and situation," meaning this framework adapts to individual buyer psychology.
+
+## Core Components
+
+**Numerator (What They Want):**
+
+- **Dream Outcome:** The ultimate result the client wants (not your service, but the life outcome). For a relocating buyer: not a "home purchase consultation" but "moving to [neighborhood] without regret about schools/commute/resale."
+- **Perceived Likelihood of Achievement:** Client belief that you can deliver it. Credibility, case studies, local data, and testimonials all increase this perception.
+
+**Denominator (The Friction):**
+
+- **Time Delay:** How long before they see results? Instant gratification (a free market report in 24 hours) beats "results after 6-month closing process."
+- **Effort & Sacrifice:** Emotional energy, time, money, or lifestyle disruption required from the client. "Let me handle the legwork" reduces friction; "you must attend 20 showings" increases it.
+
+## How Relocation-Guide & email-writer Agents Apply It
+
+**relocation-guide agent** (upstream repo, `.claude/agents/`) uses this framework to structure client messaging:
+
+1. **Dream Outcome clarity:** Articulates what buyers/sellers truly want ("peace of mind about schools and resale" vs. "3-bedroom house"). Emphasizes emotional and practical outcomes.
+
+2. **Credibility signals:** Includes local market data, testimonials, and personal experience in every communication. Raises perceived likelihood.
+
+3. **Speed emphasis:** Offers quick wins (free neighborhood guide, 24-hour market comparison) to demonstrate velocity. Reduces time-delay perception.
+
+4. **Effort minimization:** Emphasizes what the agent handles. "I'll handle showings, inspections, paperwork—you just decide where you want to live." Lowers sacrifice perception.
+
+**email-writer agent** optimizes sequences using this equation:
+
+1. **Subject lines & hooks:** Highlight the Dream Outcome, not the email topic. "Where your kids will actually have friends" beats "School district overview."
+
+2. **Story-to-value mapping:** Each micro-story demonstrates Perceived Likelihood. "I helped 47 families move to [neighborhood]—here's what happens first..." reinforces credibility.
+
+3. **Soft CTAs:** Reduce friction. Instead of "Schedule a 2-hour consultation," offer "Reply with [keyword] and I'll send you the guide"—lower time and effort cost.
+
+4. **Sequence pacing:** Multi-email sequences break Dream Outcome into smaller, faster wins. Day 1: emotional connection; Day 3: specific mistake-avoidance; Day 5: free resource. Steady value delivery combats time-delay objection.
+
+## Application Examples
+
+**Email Subject Lines:**
+- ✓ "Why [neighborhood] families never leave" (Dream Outcome + Likelihood)
+- ✗ "Market update for [area]" (no Dream Outcome)
+
+**CTA Optimization:**
+- ✓ "Hit reply with 'Guide' and I'll send it today" (Likelihood + Low Effort)
+- ✗ "Schedule a consultation" (High Effort, Long Time Delay)
+
+**Video Hook:**
+- ✓ "In 3 minutes, you'll know if [neighborhood] is right for your budget" (Outcome + Speed)
+- ✗ "Real estate market analysis for [area]" (Low Dream Outcome clarity)
+
+## Key Insight
+
+The equation is not about manipulation—it's about alignment. If you genuinely help clients achieve their Dream Outcome quickly with minimal effort, all four components naturally strengthen. If you can't deliver speed or low effort, explicitly address it in your positioning. Transparency about time or effort required is more trustworthy than false promises.
+
+## Related
+
+- [brunson-daily-seinfeld](/frameworks/brunson-daily-seinfeld) — storytelling raises Perceived Likelihood
+- [channel-junkies-hooks](/frameworks/channel-junkies-hooks) — hook formulas clarify Dream Outcome
+- [tools-catalog](/knowledge-qa/tools-catalog) — agent tools designed to reduce Time Delay & Effort

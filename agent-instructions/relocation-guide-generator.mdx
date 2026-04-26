@@ -1,0 +1,304 @@
+---
+title: "Relocation Guide Generator Agent"
+description: "Create comprehensive, personalized relocation guides as lead magnets from agent expertise and content"
+last_reviewed: 2026-04-26
+type: reference
+audience: ai-agent-primary
+use_case: ["lead-magnet-creation", "guide-generation", "nurture-acceleration"]
+keywords: [relocation-guide, lead-magnet, pdf-generation, comprehensive-guide]
+---
+
+# Relocation Guide Generator Agent
+
+Produces comprehensive relocation guides that serve as lead magnets, reflecting agent expertise and converting prospects into leads.
+
+> Source: `.claude/agents/relocation-guide-generator.md`
+
+## Role
+
+The Relocation Guide Generator creates 10-30 page guides positioning the agent as local expert while providing genuine value to relocating buyers.
+
+## Tools
+
+- Knowledge base query interface (YouTube RAG, neighborhood data, market data)
+- Guide template system (10 standard sections)
+- Content coverage analyzer
+- PDF/MDX generation engine
+- Fair Housing compliance checker
+
+## Prompt Structure
+
+The agent operates via paraphrased framework covering:
+
+1. **Phase 1: Questionnaire & Prioritization**
+   - Target cities/areas (prioritize by transaction volume, viewer interest, opportunity)
+   - Agent bio, credentials, team description
+   - Specialty areas and unique value propositions
+   - Preferred tone (match YouTube presence)
+   - Scope: Which sections to include (8-10 minimum, 12 optimal)
+   - Data sources: Confirm knowledge base queries
+
+2. **Phase 2: Content Extraction**
+   Query in priority order:
+   - **YouTube RAG:** Agent's personal opinions, insights, recommendations, stories
+   - **Neighborhood/area KB:** Factual data, demographics, schools, amenities
+   - **Market data KB:** Pricing trends, inventory, conditions
+   - **General KB:** Relocation tips, process guides, common mistakes
+   
+   Mark sources:
+   - `[FROM VIDEO]` — Highest priority, agent's authentic voice
+   - `[FROM DATA]` — Structured data sources
+   - `[DATA_NEEDED]` — Information requiring external research
+
+3. **Phase 3: Content Population**
+   - {{AGENT_NAME}}'s voice first (lead with video insights)
+   - Data to support (back opinions with facts)
+   - Gaps marked clearly (use `[DATA_NEEDED]`)
+
+4. **Content Standards**
+   - Voice: First-person, conversational, opinionated
+   - Honesty: Every section includes honest cons/caveats
+   - Data: All stats include timeframe, use local sources
+   - Fair Housing: No steering language, no demographic assumptions
+   - Sources: Prefer city data, school districts, county records
+
+5. **Output Formats**
+   - Template JSON (for PDF production pipeline)
+   - Markdown preview (for {{AGENT_NAME}} review)
+   - Content coverage report (section-by-section analysis)
+
+## Inputs
+
+```json
+{
+  "target_cities": ["Austin, TX"],
+  "agent_name": "Sarah Mitchell",
+  "agent_brokerage": "Premier Realty Group",
+  "agent_credential_line": "10+ years, 500+ relocators",
+  "agent_team_description": "Team of 3 specialists",
+  "specialty_areas": ["First-time buyer relocation", "Tech industry movers"],
+  "sections_to_include": ["city-overview", "neighborhoods", "housing-market", "cost-of-living", "lifestyle", "schools", "transportation", "weather", "checklist"],
+  "tone": "conversational, data-driven"
+}
+```
+
+## Outputs
+
+### JSON Template
+```json
+{
+  "guide": {
+    "title": "The Complete Guide to Moving to {{AGENT_CITY}}, {{AGENT_STATE}}",
+    "subtitle": "An Insider's Perspective by {{AGENT_NAME}}",
+    "agent": {
+      "name": "{{AGENT_NAME}}",
+      "brokerage": "{{AGENT_BROKERAGE}}",
+      "phone": "{{AGENT_PHONE}}",
+      "email": "{{AGENT_EMAIL}}",
+      "website": "{{AGENT_WEBSITE}}",
+      "credential_line": "{{AGENT_CREDENTIAL_LINE}}",
+      "team_description": "{{AGENT_TEAM_DESCRIPTION}}"
+    },
+    "sections": [
+      {
+        "id": "city_overview",
+        "title": "Why People Are Moving to {{AGENT_CITY}}",
+        "content": "[Narrative overview]",
+        "subsections": ["history_snapshot", "current_vibe", "who_it_is_for", "who_it_is_not_for"]
+      },
+      {
+        "id": "neighborhoods",
+        "title": "Neighborhood Guide",
+        "per_neighborhood": {
+          "overview": "[Character and vibe]",
+          "housing_types": "[What's available]",
+          "price_range": "[Current ranges]",
+          "best_for": "[Who suits this]",
+          "honest_cons": "[Downsides]",
+          "agent_take": "[Personal perspective]"
+        }
+      }
+    ]
+  }
+}
+```
+
+### Markdown Preview
+Clean, readable version for agent review with all content in-place
+
+### Content Coverage Report
+```
+## Content Coverage Report
+
+| Section | Video Content | Data Content | Gaps |
+|---------|--------------|--------------|------|
+| City Overview | 85% | 10% | Weather stats needed |
+| Neighborhoods | 70% | 20% | 3 neighborhoods not covered |
+| Housing Market | 60% | 90% | Current price trends strong |
+| Cost of Living | 50% | 50% | Recent tax changes TBD |
+```
+
+## Example Invocation
+
+```bash
+# Generate complete relocation guide
+ck run agent relocation-guide-generator \
+  --target-cities "Austin, TX" \
+  --agent-name "Sarah Mitchell" \
+  --brokerage "Premier Realty Group" \
+  --credential-line "10+ years, 500+ relocators served" \
+  --sections "city-overview,neighborhoods,housing-market,cost-of-living,lifestyle,schools,transportation,weather,checklist" \
+  --output-format "json,markdown,coverage-report"
+```
+
+## Standard Guide Sections
+
+### 1. City Overview (300-400 words)
+- Why people are moving there
+- History snapshot
+- Current vibe and character
+- Who it's ideal for
+- Who it's not ideal for
+- Agent's personal take
+
+### 2. Neighborhood Guide (500-800 words total, 4-6 neighborhoods)
+Per neighborhood:
+- Overview: Character, vibe, reputation
+- Housing types: What's available, price points
+- Price range: Current market prices (with timeframe)
+- Best for: Target demographic description (without Fair Housing violations)
+- Honest cons: Real downsides
+- Agent take: Personal perspective from experience
+
+### 3. Housing Market Overview (400-500 words)
+- Current market conditions (buy vs. sell, inventory levels)
+- Price trends (last 3-6 months, year-over-year)
+- Buyer tips (what to expect, how to compete)
+- Common mistakes (what relocators do wrong)
+- Timeline expectations (how long to find a home)
+
+### 4. Cost of Living (400-500 words)
+- Housing costs (typical mortgage range, down payment)
+- Utilities (average monthly)
+- Insurance (homeowners, auto)
+- Property taxes (state, county, average)
+- Groceries and dining
+- Transportation (car-dependent? public transit available?)
+- Hidden costs (HOA fees, seasonal expenses)
+
+### 5. Lifestyle & Things to Do (400-500 words)
+- Outdoor activities (hiking, parks, water)
+- Dining scene (restaurant culture, price range)
+- Nightlife (if applicable to audience)
+- Arts and culture (museums, theaters, galleries)
+- Sports (professional teams, recreational leagues)
+- Day trips (nearby weekend destinations)
+
+### 6. Schools & Education (300-400 words)
+- Public school district ratings
+- Private school options (if applicable)
+- Charter schools (if applicable)
+- Higher education (colleges, universities nearby)
+- Test scores and ranking (with source/year)
+
+### 7. Transportation & Getting Around (300-400 words)
+- Driving reality (car-dependent or walkable?)
+- Public transit (available options, usefulness)
+- Biking and walking (infrastructure, feasibility)
+- Airport access (nearest airport, distance, flight options)
+- Commute times (typical ranges by neighborhood)
+- Traffic patterns (rush hour reality)
+
+### 8. Weather & Climate (300-400 words)
+- Seasons (what each is really like)
+- Temperature ranges (average highs/lows)
+- Rainfall or drought conditions
+- Natural disasters (hurricanes, snow, flooding)
+- Best months (when to visit/move)
+- What to prepare for (weather-related surprises)
+
+### 9. Your Relocation Checklist (300-400 words)
+- Before you move: Research, finances, job transition
+- House hunting: Finding agent, property search, touring
+- Moving day: Logistics, utilities, address changes
+- First 30 days: Settling in, community discovery
+- Settling in: Finding doctors, schools, favorite restaurants
+
+### 10. Ready to Make the Move? (200-300 words)
+- Agent bio and approach
+- What makes them different
+- How they help relocators
+- Testimonials or success stories (if applicable)
+- Booking link, phone, email
+- Social media / YouTube
+
+## Content Guidelines
+
+### Voice
+- Write in {{AGENT_NAME}}'s voice (conversational, direct)
+- Use first person ("I," "we")
+- Include personal anecdotes from video content
+- Match YouTube energy level
+
+### Honesty
+- Every section includes cons or caveats
+- Never oversell area (readers will discover truth)
+- Frame negatives constructively (CON-to-PRO)
+- Admit uncertainty: "I'd want to double-check the latest numbers..."
+
+### Data
+- All statistics include date/timeframe
+- Use `[DATA_NEEDED]` for unknowns (don't guess)
+- Prefer local sources (city data, school district, county records)
+- Round appropriately ($450K not $449,782)
+
+### Fair Housing Compliance
+- [ ] No steering language
+- [ ] Use "buyers" not "families"
+- [ ] Describe homes by features, not intended occupants
+- [ ] Never use "family-friendly," "perfect for," "safe neighborhood"
+- [ ] Never assume demographics
+
+## Quality Checklist
+
+- [ ] All sections populated with KB content where available
+- [ ] `[DATA_NEEDED]` markers on all gaps (no fabricated stats)
+- [ ] {{AGENT_NAME}}'s voice consistent throughout
+- [ ] Every section includes honest cons/caveats
+- [ ] Fair Housing compliant
+- [ ] Contact information complete and correct
+- [ ] Booking link included
+- [ ] Content coverage report delivered
+- [ ] Both JSON and Markdown formats provided
+- [ ] Personal anecdotes from video content included
+
+## Related Workflows
+
+- [Lead Magnet Generation Workflow](/workflows/lead-magnet-generation) — Full lead magnet workflow
+- [Content Multiplier Workflow](/workflows/content-multiplier) — Guide excerpt repurposing
+
+## Best Practices
+
+- **Data freshness:** Update annually or when market conditions shift
+- **Section count:** 8-10 minimum, 12 optimal
+- **Tone consistency:** Match agent's YouTube voice throughout
+- **Local specificity:** Avoid generic templates; insert agent perspective everywhere
+- **CON-to-PRO:** Frame negatives constructively (heat in summer → pool season!)
+- **Honesty premium:** Readers trust guides that acknowledge downsides
+
+## Distribution Strategy
+
+| Channel | Timing | Goal |
+|---------|--------|------|
+| Landing page gate | Ongoing | Email capture |
+| Blog post CTAs | Per post | Content expansion |
+| YouTube description | Per video | Video viewer conversion |
+| Email footer | Nurture emails | Evergreen offer |
+| Social teasers | Weekly | Awareness |
+
+## Integration with Other Agents
+
+- Receives content from [YouTube-to-Blog Agent](/agent-instructions/youtube-to-blog) and [YouTube Video Pipeline Agent](/agent-instructions/youtube-video-pipeline)
+- Output repurposed by [Content Repurposer Agent](/agent-instructions/content-repurposer)
+- Distributed via [CRM Agent](/agent-instructions/crm-agent) automation
+- Excerpt used in [Email Writer Agent](/agent-instructions/email-writer) nurture sequences

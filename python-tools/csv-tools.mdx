@@ -1,0 +1,196 @@
+---
+title: "Python CSV Tools"
+description: "Backend Python modules for contact CSV cleaning and conversation data import."
+last_reviewed: 2026-04-26
+type: reference
+audience: ai-agent-primary
+use_case: ["data-cleaning", "contact-import", "csv-validation"]
+keywords: [csv, data-cleaning, deduplication, validation, contact-processing]
+---
+
+# Python CSV Tools
+
+Backend Python modules for cleaning and validating contact CSV files and importing conversation data into RAG knowledge bases. Handles deduplication, format validation, and field normalization.
+
+> Source: `tools/csv_tools/`
+
+## Module Overview
+
+| Module | Purpose |
+|--------|---------|
+| `process_contacts.py` | Clean, deduplicate, and validate contact CSVs |
+| `import_conversations.py` | Import conversation CSV to RAG |
+| `clean_data.py` | Utility functions for data normalization |
+
+## process_contacts.py
+
+Clean and validate contact CSV files. Deduplicates records, validates email and phone formats, normalizes field names, and outputs a cleaned CSV ready for CRM import.
+
+**Public Functions:**
+
+| Function | Params | Returns | Notes |
+|----------|--------|---------|-------|
+| `normalize_column_names()` | headers: List[str] | List[str] | Maps aliases to canonical names |
+| `normalize_phone()` | phone: str | Tuple[str, bool] | Strips chars, validates format |
+| `normalize_email()` | email: str | Tuple[str, bool] | Validates email format |
+| `deduplicate_contacts()` | records: List[Dict] | List[Dict] | Removes duplicates by email/phone |
+| `process_csv()` | input_path: str, dedupe: bool, validate: bool | Dict | Full processing pipeline |
+
+**Dependencies:**
+- None (standard library only)
+
+**Environment Variables:** None required.
+
+**Column Aliases Supported:**
+- Email: email, email_address, email address
+- Phone: phone, phone_number, phone number, mobile, cell, telephone
+- First name: first_name, firstname, first name, first
+- Last name: last_name, lastname, last name, last
+
+**Example:**
+```python
+from process_contacts import process_csv
+
+result = process_csv(
+    input_path="leads.csv",
+    dedupe=True,
+    validate=True
+)
+
+print(f"Records processed: {result['total_records']}")
+print(f"Records kept: {result['kept_records']}")
+print(f"Duplicates removed: {result['duplicates_removed']}")
+print(f"Invalid emails: {result['invalid_emails']}")
+print(f"Invalid phones: {result['invalid_phones']}")
+print(f"Output file: {result['output_path']}")
+```
+
+**CLI Usage:**
+```bash
+python3 process_contacts.py --input leads.csv
+python3 process_contacts.py --input leads.csv --dedupe --validate
+python3 process_contacts.py --input leads.csv --no-dedupe
+python3 process_contacts.py --input leads.csv --output cleaned_leads.csv
+```
+
+**Validation Rules:**
+
+**Email:**
+- Format: RFC 5322 pattern (simplified)
+- Rejects: missing @, invalid domain, invalid TLD
+
+**Phone:**
+- US format: 10 digits (with optional leading 1)
+- Strips: dashes, spaces, parentheses, +1 prefix
+- Normalizes to: 1XXXXXXXXXX (US country code + 10 digits)
+- Rejects: less than 10 digits, non-numeric
+
+**Name Normalization:**
+- Trims whitespace
+- Capitalizes first letter of each name
+- Removes extra spaces between words
+
+**Output CSV:**
+Same columns as input, with normalized values. Default filename: `{input}_cleaned.csv`
+
+---
+
+## import_conversations.py
+
+Import conversation data from CSV into a RAG knowledge base. Each row becomes a searchable document for semantic search retrieval.
+
+**Public Functions:**
+
+| Function | Params | Returns | Notes |
+|----------|--------|---------|-------|
+| `parse_csv_rows()` | csv_path: str | List[Dict] | Reads and parses CSV |
+| `import_to_rag()` | csv_path: str, db_name: str, chunk_size: int | Dict | Imports to ChromaDB |
+
+**Dependencies:**
+- `chromadb`
+- `langchain` text splitters
+- `langchain_community.embeddings.HuggingFaceEmbeddings`
+
+**Example:**
+```python
+from import_conversations import import_to_rag
+
+result = import_to_rag(
+    csv_path="conversations.csv",
+    db_name="conversation_history_kb",
+    chunk_size=1000
+)
+
+print(f"Rows processed: {result['rows_processed']}")
+print(f"Documents created: {result['total_documents']}")
+print(f"Chunks embedded: {result['total_chunks']}")
+```
+
+**CLI Usage:**
+```bash
+python3 import_conversations.py --input conversations.csv --database conv_kb
+python3 import_conversations.py --input conversations.csv --database conv_kb --chunk-size 1500
+```
+
+**Expected CSV Format:**
+```csv
+contact_name,contact_email,conversation_date,message_content,context
+John Smith,john@example.com,2026-04-20,"Great property in Tampa!",Market discussion
+Jane Doe,jane@example.com,2026-04-19,"Interested in relocation guide",Lead inquiry
+```
+
+**Flexible Column Mapping:**
+- Recognizes common aliases: contact_name/name, conversation_date/date, message_content/message
+- Treats unrecognized columns as context metadata
+
+**Output:**
+- Creates/appends to ChromaDB knowledge base
+- Stores metadata: contact_name, contact_email, date, context
+- Chunks large conversation content for search precision
+
+---
+
+## clean_data.py
+
+Utility functions for common data cleaning tasks (phone normalization, email validation, whitespace handling).
+
+**Public Functions:**
+
+| Function | Params | Returns | Notes |
+|----------|--------|---------|-------|
+| `normalize_whitespace()` | text: str | str | Trims and collapses spaces |
+| `extract_digits()` | text: str | str | Removes all non-digits |
+| `is_valid_email()` | email: str | bool | Email format check |
+| `is_valid_phone()` | phone: str | bool | Phone format check |
+| `capitalize_name()` | name: str | str | Proper name capitalization |
+
+**Example:**
+```python
+from clean_data import normalize_whitespace, capitalize_name
+
+cleaned_name = capitalize_name("john   smith")  # "John Smith"
+clean_ws = normalize_whitespace("  hello    world  ")  # "hello world"
+```
+
+---
+
+## Configuration
+
+**Deduplication Strategy:**
+1. Exact email match (highest priority)
+2. Exact phone match
+3. Email + last name match
+4. Keeps most complete record (most fields filled)
+
+**Validation Strictness:**
+- Emails: Basic RFC pattern (no DNS lookup)
+- Phones: Format validation only (no carrier check)
+- Names: Non-empty, basic character validation
+
+---
+
+## Related
+
+- [CSV MCP Tools](/mcp-tools/csv) — MCP server wrappers
+- [RAG Tools](/python-tools/rag-tools) — Powers the conversation database queries
+- [CRM Tools](/python-tools/crm-tools) — Can export contacts to CSV for cleaning

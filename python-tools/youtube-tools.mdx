@@ -1,0 +1,226 @@
+---
+title: "Python YouTube Tools"
+description: "Backend Python modules for fetching transcripts, ingesting to RAG, and analyzing channels."
+last_reviewed: 2026-04-26
+type: reference
+audience: ai-agent-primary
+use_case: ["video-processing", "transcript-ingestion", "channel-analysis"]
+keywords: [youtube, yt-dlp, transcripts, video-metadata, channel-analysis]
+---
+
+# Python YouTube Tools
+
+Backend Python modules for downloading YouTube video transcripts and metadata, ingesting transcripts into RAG knowledge bases, analyzing channel content, and querying strategy guides.
+
+> Source: `tools/youtube_tools/`
+
+## Module Overview
+
+| Module | Purpose |
+|--------|---------|
+| `fetch_videos.py` | Download transcripts & metadata via yt-dlp |
+| `ingest_to_rag.py` | Index transcripts to ChromaDB |
+| `analyze_channels.py` | Analyze channel content patterns |
+| `rag_youtube_helper.py` | Query strategy knowledge base |
+
+## fetch_videos.py
+
+Download video transcripts and metadata from YouTube channels using yt-dlp. Fetches auto-generated captions (VTT format), converts to plaintext, and saves metadata as JSON.
+
+**Public Functions:**
+
+| Function | Params | Returns | Notes |
+|----------|--------|---------|-------|
+| `fetch_channel_videos()` | handle: str, max_videos: int, days: int | List[Dict] | Metadata only (fast) |
+| `fetch_full_metadata()` | video_id: str | Dict or None | Complete video details |
+| `download_subtitles()` | video_id: str, output_dir: Path | Path or None | Downloads VTT file |
+| `vtt_to_plaintext()` | vtt_text: str | str | Converts VTT to clean text |
+| `process_channel()` | handle, name, output_dir, days, max_videos, dry_run | Dict | Processes all videos in channel |
+
+**Dependencies:**
+- `yt-dlp` (system command) — Required for subtitle/transcript download
+- `pyyaml` — For channels YAML config file
+
+**Environment Variables:** None required.
+
+**Example:**
+```python
+from fetch_videos import process_channel
+from pathlib import Path
+
+result = process_channel(
+    handle="@ChannelHandle",
+    name="Channel Display Name",
+    output_dir=Path("./transcripts"),
+    days=60,
+    max_videos=20,
+    dry_run=False
+)
+
+print(f"Downloaded {result['transcripts_downloaded']} transcripts")
+```
+
+**CLI Usage:**
+```bash
+python3 fetch_videos.py --channel "@ChannelHandle" --days 60 --max 20
+
+# Batch via YAML config
+python3 fetch_videos.py --channels-file channels.yaml
+
+# Preview without downloading
+python3 fetch_videos.py --channel "@ChannelHandle" --dry-run
+```
+
+**YAML Config Format:**
+```yaml
+channels:
+  - handle: "@ChannelHandle"
+    name: "Display Name"
+    category: "own_channel"
+  - handle: "@CompetitorHandle"
+    name: "Competitor Name"
+    category: "competitor"
+```
+
+**Output Files:**
+- `{video_id}.txt` — Plaintext transcript (converted from VTT)
+- `{video_id}.json` — Video metadata (title, duration, view count, etc.)
+- `_fetch_summary.json` — Run summary with statistics
+
+---
+
+## ingest_to_rag.py
+
+Index downloaded YouTube transcripts into a ChromaDB knowledge base. Chunks transcripts for semantic search granularity and creates embeddings.
+
+**Public Functions:**
+
+| Function | Params | Returns | Notes |
+|----------|--------|---------|-------|
+| `ingest_transcripts()` | transcript_dir: str, db_name: str, chunk_size: int | Dict with counts | Ingests all .txt files |
+
+**Dependencies:**
+- `chromadb`
+- `langchain` text splitters
+- `langchain_community.embeddings.HuggingFaceEmbeddings`
+
+**Example:**
+```python
+from ingest_to_rag import ingest_transcripts
+
+result = ingest_transcripts(
+    transcript_dir="./transcripts/ChannelHandle",
+    db_name="channel_youtube_kb",
+    chunk_size=1000
+)
+
+print(f"Embedded {result['total_documents']} chunks")
+```
+
+**CLI Usage:**
+```bash
+python3 ingest_to_rag.py --input ./transcripts/channel --database channel_kb
+```
+
+---
+
+## analyze_channels.py
+
+Analyze YouTube channel content using RAG-powered queries. Supports topic extraction, gap analysis, style comparison, and performance insights.
+
+**Public Functions:**
+
+| Function | Params | Returns | Notes |
+|----------|--------|---------|-------|
+| `analyze_topics()` | db: str, query: str | Dict | Extract main topics |
+| `find_gaps()` | db: str, query: str | Dict | Identify missing content |
+| `analyze_style()` | db: str | Dict | Writing style analysis |
+| `competitive_compare()` | db: str, query: str | Dict | Benchmarking vs competitors |
+| `channel_summary()` | db: str | Dict | Overview report |
+
+**Dependencies:**
+- `chromadb` and RAG query modules
+
+**Example:**
+```python
+from analyze_channels import find_gaps, analyze_topics
+
+gaps = find_gaps(
+    db="channel_kb",
+    query="what relocation topics are missing"
+)
+
+topics = analyze_topics(
+    db="channel_kb",
+    query=""
+)
+```
+
+**CLI Usage:**
+```bash
+python3 analyze_channels.py --command gaps --database channel_kb --query "relocation content"
+python3 analyze_channels.py --command topics --database channel_kb
+python3 analyze_channels.py --command style --database channel_kb
+```
+
+---
+
+## rag_youtube_helper.py
+
+Query a pre-populated YouTube strategy knowledge base for recommendations on content planning, SEO, thumbnails, audience growth, and monetization.
+
+**Public Functions:**
+
+| Function | Params | Returns | Notes |
+|----------|--------|---------|-------|
+| `query_strategy()` | scenario: str, k: int | List[Dict] | Strategy recommendations |
+
+**Dependencies:**
+- `chromadb`, RAG query modules
+
+**Example:**
+```python
+from rag_youtube_helper import query_strategy
+
+advice = query_strategy(
+    scenario="How to improve CTR on relocation videos?",
+    k=5
+)
+
+for rec in advice:
+    print(f"Score: {rec['score']}")
+    print(f"Advice: {rec['content']}")
+```
+
+**CLI Usage:**
+```bash
+python3 rag_youtube_helper.py --query "improve CTR on relocation videos" --k 5
+```
+
+---
+
+## System Requirements
+
+**yt-dlp Installation:**
+```bash
+# macOS
+brew install yt-dlp
+
+# Linux
+pip install yt-dlp
+
+# Or system package manager
+```
+
+**Verify Installation:**
+```bash
+yt-dlp --version
+```
+
+---
+
+## Related
+
+- [YouTube MCP Tools](/mcp-tools/youtube) — MCP server wrappers
+- [RAG Tools](/python-tools/rag-tools) — Powers the analysis queries
+- [Content Tools](/python-tools/content-tools) — Converts transcripts to blog posts

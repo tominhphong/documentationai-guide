@@ -1,0 +1,124 @@
+---
+title: "Tools Catalog"
+description: "Index of all MCP and Python tools available to agents: data access, content generation, analysis."
+last_reviewed: 2026-04-26
+type: reference
+audience: ai-agent-primary
+use_case: ["discover-available-tools", "understand-tool-purpose"]
+keywords: [tools, MCP, catalog, agents, index, capabilities]
+---
+
+## Overview
+
+This page indexes all MCP (Model Context Protocol) servers and Python utility tools available to agents in the realtor-os framework. Tools are grouped by function (data access, content generation, analysis). Each entry includes brief purpose and link to detailed documentation.
+
+## MCP Tools
+
+### Knowledge Bases & Data Access
+
+| Tool | Purpose | Best For |
+|------|---------|----------|
+| `mcp_knowledge_bases` | Query indexed RAG (real estate data, transcripts, market info) | Retrieving context for agent decisions |
+| `mcp_conversation_history` | Search agent's prior conversations with clients | Matching tone in customer responses |
+| `mcp_youtube_rag` | Search agent's video transcripts and metadata | Content planning, topic analysis |
+| `mcp_competitor_analysis` | Query competitive real estate content in market | Identifying content gaps |
+
+### Document & Content
+
+| Tool | Purpose | Best For |
+|------|---------|----------|
+| `mcp_file_system` | Read/write documentation files (markdown, MDX) | Creating and editing wiki pages |
+| `mcp_search` | Full-text search across all indexed documents | Finding references and related pages |
+
+### Market Data
+
+| Tool | Purpose | Best For |
+|------|---------|----------|
+| `mcp_property_database` | Access to MLS data, comps, listing history | CMA generation, market analysis |
+| `mcp_neighborhood_data` | ZIP code profiles, schools, demographics | Enriching neighborhood content |
+
+### Communications
+
+| Tool | Purpose | Best For |
+|------|---------|----------|
+| `mcp_email_templates` | Access pre-designed email sequences | Quick-starting customer response drafts |
+
+## Python Tools
+
+### Data Processing
+
+| Tool | Script | Purpose |
+|------|--------|---------|
+| `data-processor.py` | `~/.claude/tools/realtor-os-data-processor.py` | Parse MLS feeds, normalize property data |
+| `market-aggregator.py` | `~/.claude/tools/market-data-aggregator.py` | Compile market trends across ZIP codes |
+
+### Analysis & Reporting
+
+| Tool | Script | Purpose |
+|------|--------|---------|
+| `cma-engine.py` | `~/.claude/tools/cma-analysis-engine.py` | Generate CMA summaries with comp analysis |
+| `market-reporter.py` | `~/.claude/tools/market-report-generator.py` | Create printable market reports |
+| `performance-analyzer.py` | `~/.claude/tools/channel-performance-analyzer.py` | Analyze YouTube channel metrics |
+
+### Content Generation
+
+| Tool | Script | Purpose |
+|------|--------|---------|
+| `outline-generator.py` | `~/.claude/tools/video-outline-generator.py` | Create video outlines using Channel Junkies patterns |
+| `email-composer.py` | `~/.claude/tools/email-sequence-composer.py` | Generate email sequences (Daily Seinfeld framework) |
+| `blog-transformer.py` | `~/.claude/tools/transcript-to-blog.py` | Convert video transcripts to blog posts |
+
+### Documentation & Validation
+
+| Tool | Script | Purpose |
+|------|--------|---------|
+| `mdx-validator.py` | `~/.claude/tools/mdx-syntax-validator.py` | Check MDX files for parse errors |
+| `frontmatter-checker.py` | `~/.claude/tools/frontmatter-validator.py` | Verify required YAML frontmatter fields |
+| `link-checker.py` | `~/.claude/tools/relative-link-validator.py` | Validate relative links resolve correctly |
+
+## How Agents Use Tools
+
+### email-writer Agent Workflow
+1. Query `mcp_conversation_history` for tone matching
+2. Query `mcp_knowledge_bases` for local facts
+3. Call `email-composer.py` to generate Daily Seinfeld sequences
+4. Output ready-to-review draft
+
+### youtube-video-pipeline Agent Workflow
+1. Query `mcp_competitor_analysis` for topic coverage gaps
+2. Call `outline-generator.py` with Channel Junkies hooks
+3. Query `mcp_youtube_rag` for agent's prior video data
+4. Output video outline with timestamps and talking points
+
+### cma-generator Agent Workflow
+1. Query `mcp_property_database` for comps and active listings
+2. Call `cma-engine.py` for analysis
+3. Query `mcp_neighborhood_data` for market context
+4. Output CMA summary ready for client presentation
+
+### customer-response Agent Workflow
+1. Classify inquiry type (buyer/seller/objection)
+2. Query `mcp_conversation_history` for style matching
+3. Query `mcp_knowledge_bases` for factual accuracy
+4. Call `email-composer.py` for response draft
+5. Output ready-to-review message
+
+## Tool Availability
+
+- **MCP tools** are live when the MCP server is running (see setup-guide)
+- **Python tools** require Python 3.9+ and dependencies installed in virtual environment
+- Tools are version-locked; updates are announced in project changelog
+- Custom tools can be added; submit request to Win 1 (Lead Architect)
+
+## Tool Governance
+
+- **Read-only tools** (search, query) are open to all agents
+- **Write tools** (file system, email sending) require approval from owning agent
+- **Data tools** (MLS, competitor data) are governed by data licensing agreements
+- Tool changes are documented in `/plans/cross-scope-requests/`
+
+## Related
+
+- [skill-quick-reference](/knowledge-qa/skill-quick-reference) — how skills wrap tools
+- [setup-guide](/help-center/setup-guide) — installing and registering tools with Claude Desktop
+- [troubleshooting](/help-center/troubleshooting) — common tool errors and fixes

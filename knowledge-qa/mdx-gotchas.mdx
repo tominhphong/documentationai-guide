@@ -1,0 +1,348 @@
+---
+title: "MDX Pitfalls & Solutions"
+description: "10 common MDX v3 errors, symptoms, and fixes to prevent deployment failures."
+last_reviewed: 2026-04-26
+type: reference
+audience: ai-agent-primary
+use_case: ["debug-mdx-errors", "prevent-deploy-failures"]
+keywords: [MDX, errors, pitfalls, syntax, validation, troubleshooting]
+---
+
+> Source: Blueprint Section 11 "Critical Pitfalls to Avoid" + documentation-ai-wiki debugging-workflow.mdx
+
+## Overview
+
+MDX v3 parse failures are all-or-nothing: a single syntax error in one file prevents the entire site from deploying. This page documents 10 common pitfalls, how to recognize them, and how to fix them.
+
+**Prevention:** Always run `bash scripts/pre-commit-check.sh ./` before pushing. CI will catch errors, but fixing locally saves time.
+
+---
+
+## 1. Unicode Checkboxes
+
+**Error Symptom:** Pre-commit check fails with "Found Unicode checkbox characters"
+
+**What Happens:** Files contain `☐` (white box) or `□` (square box) instead of markdown checkboxes.
+
+**Example (WRONG):**
+```markdown
+☐ Task one
+☐ Task two
+□ Task three
+```
+
+**Fix:**
+```markdown
+- [ ] Task one
+- [ ] Task two
+- [ ] Task three
+```
+
+**Why:** Markdown parsers expect `- [ ]` format for checkboxes. Unicode lookalikes break validation.
+
+---
+
+## 2. JSX Number Collision
+
+**Error Symptom:** "Unexpected character '<'" or "Unexpected number in JSX"
+
+**What Happens:** Content like `<20%` or `<50` looks like a JSX tag opening to the parser.
+
+**Example (WRONG):**
+```markdown
+Homes priced <$500k are moving faster. The offer is <50% of asking.
+```
+
+**Fix (Option A — rephrase):**
+```markdown
+Homes priced under $500k are moving faster. The offer is below 50% of asking.
+```
+
+**Fix (Option B — escape):**
+```markdown
+Homes priced &lt;$500k are moving faster. The offer is &lt;50% of asking.
+```
+
+**Why:** MDX parser interprets `<` as tag delimiter. Escaping or rephrasing prevents false tag detection.
+
+---
+
+## 3. Missing Frontmatter
+
+**Error Symptom:** CI failure "Missing required field: title" or page appears without metadata
+
+**What Happens:** `.mdx` file lacks the YAML frontmatter block or has incomplete fields.
+
+**Example (WRONG):**
+```markdown
+## My Page Title
+
+Content starts here...
+```
+
+**Fix:**
+```markdown
+---
+title: "My Page Title"
+description: "One-line summary of this page."
+last_reviewed: 2026-04-26
+---
+
+## Section Name
+
+Content starts here...
+```
+
+**Required Fields:**
+- `title` (string)
+- `description` (string, 50–120 chars)
+- `last_reviewed` (YYYY-MM-DD date)
+
+**Optional but Recommended:**
+- `type` (overview/reference/workflow/example/decision)
+- `audience` (ai-agent-primary/both/phong-review)
+- `use_case` (array of kebab-case phrases)
+- `keywords` (array of search terms)
+
+---
+
+## 4. HTML Comments in MDX
+
+**Error Symptom:** "Unexpected character !" or "MDX parse error" pointing to comment line
+
+**What Happens:** File contains HTML-style comments `<!-- ... -->` which are invalid in MDX.
+
+**Example (WRONG):**
+```markdown
+## Section
+
+<!-- This is a hidden comment -->
+
+Content here.
+```
+
+**Fix:**
+```markdown
+## Section
+
+{/* This is a hidden comment */}
+
+Content here.
+```
+
+**Why:** MDX treats content as JSX, not HTML. JSX comments use `{/* */}` syntax.
+
+---
+
+## 5. Asterisks Inside SVG Text
+
+**Error Symptom:** "Emphasis token opened but not closed" or unexpected emphasis parsing
+
+**What Happens:** SVG `<text>` elements containing `*` characters trigger markdown emphasis parsing across tag boundaries.
+
+**Example (WRONG):** an SVG `<text>` element containing literal asterisks like `Sales *5x* faster` triggers markdown emphasis parsing across the tag boundary.
+
+**Fix:** replace each `*` with the HTML entity `&#42;`:
+
+```markdown
+<svg>
+  <text>Sales &#42;5x&#42; faster</text>
+</svg>
+```
+
+**Why:** Markdown parser sees `*...*` and tries to create emphasis, even inside tags. HTML entities prevent this.
+
+---
+
+## 6. Pipes in JSX Attributes (Table Cells)
+
+**Error Symptom:** "Unexpected character |" in table rows with JSX components
+
+**What Happens:** Table cell containing a JSX component with a pipe `|` in an attribute value confuses the parser.
+
+**Example (WRONG):**
+```markdown
+| Feature | Description |
+|---------|-------------|
+| Alert | <Callout kind="info\|warning">Alert text</Callout> |
+```
+
+**Fix:**
+```markdown
+| Feature | Description |
+|---------|-------------|
+| Alert | <Callout kind="info">Alert text</Callout> |
+```
+
+**Alternative Fix (replace pipe with slash):**
+```markdown
+| Feature | Description |
+|---------|-------------|
+| Alert | <Callout kind="info/warning">Alert text</Callout> |
+```
+
+**Why:** Pipe is the table column delimiter. Inside JSX attribute values, it must be escaped or replaced.
+
+---
+
+## 7. Unescaped Backslashes in Code
+
+**Error Symptom:** "Unexpected character \" or code block rendering incorrectly
+
+**What Happens:** Backslashes in code examples are interpreted as escape sequences.
+
+**Example (WRONG):**
+````markdown
+```bash
+grep -r "pattern" \
+  --include="*.mdx"
+```
+````
+
+**Fix (use HTML entity):**
+````markdown
+```bash
+grep -r "pattern" &#92;
+  --include="*.mdx"
+```
+````
+
+**Better Fix (use raw string or rephrase):**
+````markdown
+```bash
+grep -r "pattern" \
+  --include="*.mdx"
+```
+````
+
+**Why:** Backslash-newline can be misinterpreted as line continuation outside of code context.
+
+---
+
+## 8. Unclosed Component Tags
+
+**Error Symptom:** "Unexpected end of file" or "Tag mismatch"
+
+**What Happens:** JSX components like `<Callout>`, `<Steps>`, `<Tabs>` are opened but not closed.
+
+**Example (WRONG):**
+```markdown
+<Callout kind="info">
+This is important information.
+
+## Next Section
+```
+
+**Fix:**
+```markdown
+<Callout kind="info">
+This is important information.
+</Callout>
+
+## Next Section
+```
+
+**Components Requiring Close Tags:**
+- `<Callout>...</Callout>`
+- `<Steps>...</Steps>` (contains `<Step>` children)
+- `<Tabs>...</Tabs>` (contains `<Tab>` children)
+- `<Columns>...</Columns>` (contains `<Column>` children)
+- `<Card>...</Card>`
+
+---
+
+## 9. Frontmatter Field Type Mismatch
+
+**Error Symptom:** "Field 'type' must be one of: overview, reference, workflow..." or CI validation fails
+
+**What Happens:** Frontmatter contains `type:` with an invalid value.
+
+**Example (WRONG):**
+```yaml
+---
+title: "Page"
+type: tutorial
+---
+```
+
+**Fix:**
+```yaml
+---
+title: "Page"
+type: reference
+---
+```
+
+**Valid type Values:**
+- `overview` — big-picture introduction
+- `reference` — lookup, definitions, reference material
+- `workflow` — procedure, steps, how-to
+- `example` — case study, worked example
+- `decision` — decision log, architectural decision
+- `changelog` — version history, release notes
+
+---
+
+## 10. Relative Link Path Errors
+
+**Error Symptom:** "Link resolves to 404" in CI check, or page not found in nav
+
+**What Happens:** Relative link path doesn't match actual file location.
+
+**Example (WRONG):**
+```markdown
+[See the framework](./framework-setup)
+[Reference](../../tools-catalog)
+```
+
+**Fix:**
+```markdown
+[See the framework](/framework/setup-overview)
+[Reference](/knowledge-qa/tools-catalog)
+```
+
+**Link Rules:**
+- Use absolute paths from wiki root: `/folder/page` (no `.mdx` extension)
+- Do NOT include `.mdx` extension in links
+- Do NOT use `../` relative paths (hard to validate)
+- Verify file exists in target folder before linking
+
+**Example Validation:**
+```bash
+# Check if link target exists
+ls docs/knowledge-qa/tools-catalog.mdx  # ✓ exists
+```
+
+---
+
+## Prevention Checklist
+
+Before pushing any MDX file:
+
+- [ ] Run `bash scripts/pre-commit-check.sh file.mdx`
+- [ ] Check frontmatter has `title`, `description`, `last_reviewed`
+- [ ] No HTML comments (`<!-- -->`) — use `{/* */}` instead
+- [ ] No Unicode checkboxes (`☐`) — use `- [ ]` instead
+- [ ] No `<NUMBER` patterns (e.g., `<20`) — escape or rephrase
+- [ ] All JSX components are closed (`<Callout>...\</Callout>`)
+- [ ] Relative links use absolute paths (`/folder/page`, no `.mdx`)
+- [ ] SVG text tags escape `*` as `&#42;`
+- [ ] No pipes `|` unescaped in JSX attributes within tables
+
+## Common Error Messages & Quick Fixes
+
+| Error Message | Likely Cause | Quick Fix |
+|---------------|--------------|-----------|
+| "Unexpected character !" | HTML comment | Replace `<!-- -->` with `{/* */}` |
+| "Unexpected character <" | Number like `<20` | Escape as `&lt;20` or rephrase |
+| "Tag mismatch" | Unclosed JSX | Add matching `</ComponentName>` |
+| "Missing required field" | No frontmatter | Add YAML block with title + description |
+| "Unexpected character \|" | Pipe in table JSX | Remove pipe or use `/` instead |
+| "Emphasis not closed" | Asterisk in SVG | Escape as `&#42;` |
+| "404 in link" | Bad relative path | Use absolute path `/folder/page` |
+
+## Related
+
+- [setup-guide](/help-center/setup-guide) — running pre-commit validation
+- [troubleshooting](/help-center/troubleshooting) — more deploy and build errors
+- Blueprint "Validation Layer" — full pre-commit script documentation

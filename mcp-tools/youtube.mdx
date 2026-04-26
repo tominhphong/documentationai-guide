@@ -1,0 +1,178 @@
+---
+title: "YouTube Processing & Analysis Tools"
+description: "MCP tools for fetching transcripts, ingesting to RAG, analyzing channels, and strategy queries."
+last_reviewed: 2026-04-26
+type: reference
+audience: ai-agent-primary
+use_case: ["video-processing", "transcript-ingestion", "content-analysis", "strategy-research"]
+keywords: [youtube, transcripts, yt-dlp, video-metadata, content-analysis]
+---
+
+# YouTube Processing & Analysis Tools
+
+The YouTube module wraps Python scripts for downloading video transcripts and metadata from channels, ingesting transcripts into RAG knowledge bases, analyzing channel content, and querying strategy guides. Uses yt-dlp for reliable transcript and subtitle extraction.
+
+> Source: `mcp_server/src/tools/youtube.ts`
+
+## Tools Overview
+
+| Tool | Purpose | Params | Returns |
+|------|---------|--------|---------|
+| `youtube_fetch_videos` | Download transcripts & metadata | channel, days, max | Video list with transcript files |
+| `youtube_ingest` | Index transcripts to RAG | transcript_dir, db_name | Ingestion summary |
+| `youtube_analyze` | Analyze channel content | command, database, query | Analysis results (topics, gaps, style) |
+| `youtube_strategy` | Query strategy knowledge base | scenario, max_results | Strategy recommendations |
+
+## youtube_fetch_videos
+
+Download video transcripts and metadata from a YouTube channel using yt-dlp. Fetches auto-generated captions and video details (title, publish date, duration, view count).
+
+```typescript
+server.tool("youtube_fetch_videos", {
+  channel: string,                      // URL, handle (@name), or channel ID
+  days?: number,                        // Look back N days (min 1)
+  max?: number                          // Max videos to fetch, 1-500 (default: 50)
+})
+```
+
+**Parameters:**
+- `channel` (required): YouTube channel identifier — accepts full URL (youtube.com/c/...), handle (@ChannelName), or numeric channel ID.
+- `days` (optional): Only fetch videos published in the last N days; minimum 1. If omitted, fetches all available videos.
+- `max` (optional): Maximum number of videos to download; valid range 1-500, default 50.
+
+**Returns:** Summary with video count, successful transcript downloads, any errors, and output directory path. Saves individual `.txt` (transcript) and `.json` (metadata) files per video.
+
+**Example MCP call:**
+```json
+{
+  "name": "youtube_fetch_videos",
+  "arguments": {
+    "channel": "@ChannelHandle",
+    "days": 60,
+    "max": 20
+  }
+}
+```
+
+**Side effects:** 
+- Downloads transcripts via yt-dlp (requires `yt-dlp` command installed).
+- Writes `.txt` and `.json` files to local filesystem.
+- Execution timeout: 300 seconds (5 minutes).
+- Requires internet connectivity to YouTube.
+
+---
+
+## youtube_ingest
+
+Ingest downloaded YouTube transcripts into a RAG knowledge base. Processes transcript files, chunks them for semantic search, and creates embeddings.
+
+```typescript
+server.tool("youtube_ingest", {
+  transcript_dir: string,               // Path to transcript files directory
+  db_name: string                       // Name of RAG database to populate
+})
+```
+
+**Parameters:**
+- `transcript_dir` (required): Path to directory containing `.txt` transcript files (output from `youtube_fetch_videos`).
+- `db_name` (required): Name of the RAG knowledge base to create or append to.
+
+**Returns:** Ingestion summary: files processed, chunks created, total embedded documents, any parsing errors.
+
+**Example MCP call:**
+```json
+{
+  "name": "youtube_ingest",
+  "arguments": {
+    "transcript_dir": "./transcripts/ChannelHandle",
+    "db_name": "my_agent_youtube_kb"
+  }
+}
+```
+
+**Side effects:**
+- Creates or updates ChromaDB knowledge base on disk.
+- Calls HuggingFace embeddings API for all transcript chunks.
+- Execution timeout: 300 seconds (5 minutes).
+- High CPU usage during embedding generation.
+
+---
+
+## youtube_analyze
+
+Analyze YouTube channel content using RAG-powered queries. Supports multiple analysis commands: topic extraction, content gaps, writing style comparison, competitive analysis, and content summary.
+
+```typescript
+server.tool("youtube_analyze", {
+  command: string,                      // Analysis type: "topics", "gaps", "style", "compare", "summary"
+  database?: string,                    // RAG database name (defaults to config.default_rag_database)
+  query?: string                        // Optional focus query (e.g., "relocation content")
+})
+```
+
+**Parameters:**
+- `command` (required): Analysis type — one of: `topics` (extract main topics), `gaps` (identify missing content), `style` (analyze writing style), `compare` (competitive benchmarking), `summary` (overview of channel).
+- `database` (optional): RAG database to analyze. Falls back to agent's default database.
+- `query` (optional): Refine analysis with a specific question or topic (e.g., "how to improve CTR on relocation videos").
+
+**Returns:** Structured analysis report with findings, recommendations, statistics, and topic insights.
+
+**Example MCP call:**
+```json
+{
+  "name": "youtube_analyze",
+  "arguments": {
+    "command": "gaps",
+    "database": "aaron_channel_kb",
+    "query": "what relocation topics are underrepresented"
+  }
+}
+```
+
+**Side effects:**
+- Reads from RAG knowledge base.
+- Execution timeout: 180 seconds (3 minutes).
+- No write operations.
+
+---
+
+## youtube_strategy
+
+Query a curated YouTube strategy knowledge base for advice on content planning, SEO optimization, thumbnail strategy, audience growth, and channel monetization.
+
+```typescript
+server.tool("youtube_strategy", {
+  scenario: string,                     // Description of the situation or question
+  max_results?: number                  // Max strategy results, 1-20 (default: 5)
+})
+```
+
+**Parameters:**
+- `scenario` (required): Natural-language description of the scenario or question (e.g., "how to improve CTR on relocation videos" or "best practices for shorts vs. long-form content").
+- `max_results` (optional): Maximum number of strategy recommendations to return; valid range 1-20, default 5.
+
+**Returns:** Ranked strategy recommendations with source citations, relevance scores, and actionable advice.
+
+**Example MCP call:**
+```json
+{
+  "name": "youtube_strategy",
+  "arguments": {
+    "scenario": "How should I structure a series about moving to Tampa?",
+    "max_results": 5
+  }
+}
+```
+
+**Side effects:**
+- Queries pre-populated YouTube strategy RAG database.
+- Read-only operation.
+- No execution timeout.
+
+---
+
+## Related
+
+- [Python YouTube Tools](/python-tools/youtube-tools) — Backend implementation
+- [RAG Query Tools](/mcp-tools/rag) — Powers the `youtube_analyze` command
+- [Content Tools](/mcp-tools/content) — Converts transcripts to blog posts via `content_transcript_to_blog`

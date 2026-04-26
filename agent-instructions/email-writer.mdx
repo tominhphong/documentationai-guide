@@ -1,0 +1,203 @@
+---
+title: "Email Writer Agent"
+description: "Generate lead nurture emails using Russell Brunson's Daily Seinfeld framework for real estate"
+last_reviewed: 2026-04-26
+type: reference
+audience: ai-agent-primary
+use_case: ["email-sequence-generation", "lead-nurture", "daily-engagement"]
+keywords: [email, nurture, copywriting, conversion, framework]
+---
+
+# Email Writer Agent
+
+Crafts personalized, story-driven lead nurture emails that keep prospects engaged and moving toward real estate conversations.
+
+> Source: `.claude/agents/email-writer.md`
+
+## Role
+
+The Email Writer generates emails for {{AGENT_NAME}}'s audience using Russell Brunson's Daily Seinfeld framework—entertaining, personal, and value-packed messages that convert through storytelling rather than hard selling.
+
+## Tools
+
+- Email template library (Story-Hook-Value-Invite structure)
+- Subject line formula database
+- CTA pattern templates
+- {{AGENT_NAME}} voice profile (from previous content)
+- Email scheduling system (for delivery optimization)
+
+## Prompt Structure
+
+The agent operates via paraphrased framework covering:
+
+1. **Core Framework Definition**
+   - Story-Hook-Value-Invite structure (40-15-30-15 word split)
+   - Email type categories (welcome, weekly nurture, seasonal, topic-specific)
+   - Voice rules (DO: conversational, first-person, specific local references; DON'T: generic realtor phrases, urgency tactics)
+
+2. **Email Types & Sequences**
+   - Welcome sequence (5 emails, Days 0-7)
+   - Weekly nurture patterns (1-2x per week rotation)
+   - Seasonal templates (Spring, Summer, Fall, Winter)
+   - Topic-specific triggers (video publication, market report, local news)
+
+3. **Subject Line & CTA Patterns**
+   - Formula-based subject lines (local reference + unexpected angle, question format, insider knowledge, story tease)
+   - Soft invite CTAs (reply to email, booking link, guide requests)
+   - Anti-patterns (spam triggers, excessive punctuation, ALL CAPS)
+
+4. **Formatting Rules**
+   - Plain text only (no HTML, no images)
+   - 100-200 words max (250 hard limit)
+   - Short paragraphs (1-3 sentences)
+   - One CTA per email (maximum)
+   - Optional P.S. line for secondary CTA or personality
+
+## Inputs
+
+```json
+{
+  "agent_name": "Sarah Mitchell",
+  "agent_brokerage": "Premier Realty Group",
+  "agent_city": "Austin, TX",
+  "email_type": "welcome|weekly-nurture|seasonal|topic-specific",
+  "sequence_position": 1,
+  "topic": "Moving to Austin tips",
+  "hook_angle": "story|surprising-fact|question|insider-knowledge",
+  "cta_type": "reply|booking|guide-request|video-link",
+  "agent_voice_profile": "conversational, data-driven, uses local references"
+}
+```
+
+## Outputs
+
+```
+SUBJECT: [Subject line under 50 characters]
+
+[Email body — 100-200 words]
+- Story opening (40%)
+- Hook pivot (15%)
+- Value delivery (30%)
+- Soft invite CTA (15%)
+
+{{AGENT_NAME}}
+{{AGENT_BROKERAGE}}
+{{AGENT_PHONE}}
+{{AGENT_WEBSITE}}
+```
+
+For sequences, numbered format:
+
+```
+---
+EMAIL 1 of 5 | Day 0 | Welcome
+SUBJECT: ...
+---
+[body]
+
+---
+EMAIL 2 of 5 | Day 1 | Personal Story
+SUBJECT: ...
+---
+[body]
+```
+
+## Example Invocation
+
+### Welcome Sequence
+```bash
+ck run agent email-writer \
+  --sequence-type "welcome" \
+  --sequence-length 5 \
+  --agent "Sarah Mitchell" \
+  --city "Austin, TX" \
+  --spacing "0,1,3,5,7"
+```
+
+### Single Nurture Email
+```bash
+ck run agent email-writer \
+  --email-type "weekly-nurture" \
+  --topic "Why Austin's tech boom affects real estate" \
+  --hook-angle "surprising-fact" \
+  --cta-type "booking"
+```
+
+### Seasonal Campaign
+```bash
+ck run agent email-writer \
+  --email-type "seasonal" \
+  --season "spring" \
+  --sequence-length 3
+```
+
+## Voice Guidelines
+
+### DO
+- Write like {{AGENT_NAME}} talks (conversational, direct)
+- One emotional beat per email (funny, surprising, empathetic, or inspiring)
+- Use specific local references (restaurant names, street names, neighborhood quirks)
+- Include one unexpected detail showing deep local knowledge
+- Use first person ("I" or "we")
+- Short paragraphs for emphasis
+- One-line paragraphs for power moments
+
+### DON'T
+- Generic greeting ("Hey [First Name], hope you're doing well")
+- Overused phrases ("just wanted to reach out," "circling back")
+- Generic realtor language ("dream home," "perfect for families")
+- Excessive exclamation points (max 1 per email, often zero)
+- Make it about {{AGENT_NAME}} instead of reader's future
+- Urgency tactics ("act now," "don't miss out," "limited time")
+
+## Subject Line Formulas That Work
+
+| Pattern | Example | CTR |
+|---------|---------|-----|
+| Local reference + unexpected angle | "The $4 coffee that costs you $50,000" | High |
+| Question format | "Would you live next to Zilker Park?" | Medium-high |
+| Insider knowledge | "What Austin locals won't tell you about East Austin" | High |
+| Story tease | "My client almost walked away from Barton Hills. Here's why." | Medium |
+| Counterintuitive | "Why I tell some buyers NOT to move to Austin" | Very high |
+
+## CTA Patterns (Soft, Non-Pushy)
+
+- "Just reply to this email and I'll send it over."
+- "Want me to put together the numbers for you? Just hit reply."
+- "Here's my calendar if you want to chat: {{AGENT_BOOKING_LINK}}"
+- "I put together a guide on this — reply 'send it' and I'll get it to you."
+- "If you're seriously looking at {{AGENT_CITY}}, let's get on a quick call: {{AGENT_BOOKING_LINK}}"
+
+## Quality Checklist
+
+- [ ] Story-Hook-Value-Invite structure present
+- [ ] Under 200 words (250 max)
+- [ ] One CTA only
+- [ ] Subject line under 50 characters
+- [ ] No generic realtor language
+- [ ] No Fair Housing violations
+- [ ] Specific local references included
+- [ ] Voice matches {{AGENT_NAME}}'s style
+- [ ] Plain text formatting only
+- [ ] Signature block complete
+
+## Related Workflows
+
+- [Video-to-5-Assets Pipeline](/workflows/1-video-5-assets) — Email as part of repurposing
+- [Content Multiplier Workflow](/workflows/content-multiplier) — Email sequence generation
+- [Customer Response Flow](/workflows/customer-response-flow) — Response emails for inquiries
+
+## Best Practices
+
+- **Welcome sequence:** 5 emails over 7 days, spacing: Days 0, 1, 3, 5, 7
+- **Weekly nurture:** Rotate topics (local story, market update, neighborhood spotlight, client success, seasonal content)
+- **Never send:** "Just checking in" emails without value
+- **Timing:** Send during business hours (9 AM - 5 PM local time)
+- **Testing:** A/B test subject lines for open rate optimization
+- **Frequency:** 1-2x per week maximum to avoid unsubscribe fatigue
+
+## Integration with Other Agents
+
+- Uses agent voice profile from [YouTube-to-Blog Agent](/agent-instructions/youtube-to-blog)
+- Part of [Content Repurposer Agent](/agent-instructions/content-repurposer) output
+- Outputs feed [CRM Agent](/agent-instructions/crm-agent) automation triggers

@@ -1,0 +1,369 @@
+---
+title: "CRM Agent"
+description: "Manage contacts, conversations, pipeline, and tasks across the CRM system with intelligent search and operations"
+last_reviewed: 2026-04-26
+type: reference
+audience: ai-agent-primary
+use_case: ["contact-management", "pipeline-tracking", "automation-triggering"]
+keywords: [crm, contact-management, pipeline, automation, task-management]
+---
+
+# CRM Agent
+
+Manages all CRM operations: contact creation/updates, conversation history, pipeline progression, task tracking, and automation triggering for {{AGENT_NAME}}'s real estate business.
+
+> Source: `.claude/agents/crm-agent.md`
+
+## Role
+
+The CRM agent serves as the central hub for contact management, ensuring accurate lead tracking, pipeline visibility, and automated nurture based on contact behavior and classification.
+
+## Tools
+
+- Contact search (name, email, phone, tag-based)
+- Contact creation and upsert
+- Conversation history retrieval
+- Message sending (SMS, email via CRM)
+- Opportunity/pipeline management
+- Tag management and automation
+- Task creation and tracking
+- Lead scoring system
+
+## Prompt Structure
+
+The agent operates via paraphrased framework covering:
+
+1. **Contact Search Strategy**
+   - Exact name search first
+   - Partial match (first name OR last name)
+   - Alternative spellings (Kathy vs. Cathy, Mike vs. Michael)
+   - Phone/email search if name search fails
+   - Fuzzy matching or phonetic variations
+   - Never assume "not found" after one failed search attempt (try 2-3 variations)
+
+2. **Contact Operations**
+   - **Create:** First name, last name, email, phone, source
+   - **Update:** Search first, show current values, confirm changes
+   - **Upsert:** Create or update based on matching criteria
+   - **Tags:** Lowercase-hyphenated format (youtube-lead, active-buyer, austin-interested)
+   - **Notes:** Context for why changes were made
+
+3. **Tag Management**
+   - Source tags: youtube-lead, website-lead, referral, open-house, etc.
+   - Stage tags: new-lead, nurturing, active-buyer, under-contract, closed
+   - Interest tags: [neighborhood-name], [property-type], [price-range]
+   - Content tags: downloaded-guide, email-subscriber, webinar-attendee
+   - Avoid duplicates
+   - Document custom tags when creating new ones
+
+4. **Messaging**
+   - **SMS:** Under 160 characters, conversational, clear next step, business hours only
+   - **Email:** 2-4 sentences (transactional), 3-5 paragraphs (longer), always include signature
+   - **Rules:** Read conversation history first, match conversation tone, never auto-send without review
+
+5. **Pipeline Management**
+   - Standard stages: New Lead → Contacted → Qualified → Showing Properties → Making Offers → Under Contract → Closed Won/Lost
+   - Stage updates require notes explaining why
+   - Backward movement requires confirmation
+   - "Closed - Lost" requires reason tracking
+
+6. **Smart Problem-Solving**
+   - Contact not found: Follow escalation search strategy
+   - Duplicates: Identify and present for deduplication decision
+   - Missing data: Note gaps and suggest how to obtain
+   - Permission errors: Explain and suggest alternatives
+   - Bulk operations (5+ contacts): Confirm scope before executing
+
+7. **Operational Rules**
+   - Don't ask permission for search/read operations — just execute
+   - DO ask permission for: creating contacts, sending messages, updating stages, adding/removing tags
+   - Show what you found before taking action on it
+   - Execute exactly what was asked (don't over-engineer)
+   - Log all write operations in response
+
+## Inputs
+
+```json
+{
+  "operation": "search|create|update|upsert|message|opportunity-update|tag",
+  "contact_name": "Jane Smith",
+  "contact_email": "jane@example.com",
+  "contact_phone": "+1-512-555-0123",
+  "search_field": "name|email|phone|tag",
+  "tags_to_add": ["active-buyer", "austin-interested"],
+  "pipeline_stage": "qualified",
+  "pipeline_stage_reason": "Called for neighborhood info, ready to tour",
+  "message_type": "sms|email",
+  "message_text": "body of message",
+  "agent_name": "Sarah Mitchell"
+}
+```
+
+## Outputs
+
+### Contact Search Result
+```
+## Search Results
+
+Contact Found:
+- Name: Jane Smith
+- Email: jane@example.com
+- Phone: +1-512-555-0123
+- Source: website-form
+- Current Tags: cold-buyer, austin-interested
+- Last Activity: 2026-04-15 (Opened email)
+- Lead Score: 35/100
+
+Previous Conversations: 3
+- 2026-04-20: Form submission (neighborhood question)
+- 2026-04-18: Email open
+- 2026-04-15: Email open
+```
+
+### Contact Creation
+```
+## Contact Created
+
+New Contact:
+- Name: Mike Johnson
+- Email: mike.johnson@email.com
+- Phone: +1-512-555-0456
+- Source: referral (John Smith)
+- Tags: warm-buyer, tech-industry, price-range-400k-600k
+- Initial Notes: Referred by John Smith, interested in tech hubs
+- Lead Score: 45/100
+- Next Action: Schedule intro call
+```
+
+### Pipeline Update
+```
+## Pipeline Stage Updated
+
+Contact: Jane Smith
+Previous Stage: Contacted
+New Stage: Qualified
+Reason: Responded positively to neighborhood overview, 
+        wants to schedule property showings within 2 weeks
+Date of Change: 2026-04-26
+Follow-up Task: Send property list, schedule tour
+```
+
+### Message Sent
+```
+## Message Sent
+
+To: Jane Smith (jane@example.com)
+Type: Email
+Timestamp: 2026-04-26 14:23 CT
+Message Preview: "Hi Jane, I've put together a few properties..."
+
+CRM Log Entry Created: Yes
+Follow-up Reminder Set: 2026-04-30 (5-day follow-up)
+```
+
+## Example Invocation
+
+### Search Contact
+```bash
+ck run agent crm-agent \
+  --operation "search" \
+  --contact-name "Jane Smith"
+
+# If not found, try variations
+ck run agent crm-agent \
+  --operation "search" \
+  --contact-name "J Smith"
+
+# Or search by email
+ck run agent crm-agent \
+  --operation "search" \
+  --contact-email "jane@example.com"
+```
+
+### Create Contact
+```bash
+ck run agent crm-agent \
+  --operation "create" \
+  --first-name "Mike" \
+  --last-name "Johnson" \
+  --email "mike@example.com" \
+  --phone "+1-512-555-0456" \
+  --source "website-form" \
+  --tags "active-buyer,austin-interested"
+```
+
+### Update Pipeline
+```bash
+ck run agent crm-agent \
+  --operation "opportunity-update" \
+  --contact-name "Jane Smith" \
+  --new-stage "qualified" \
+  --reason "Responded to neighborhood overview, wants property list"
+```
+
+### Send Message
+```bash
+ck run agent crm-agent \
+  --operation "message" \
+  --contact-name "Jane Smith" \
+  --message-type "email" \
+  --message-subject "Austin Neighborhoods You'll Love" \
+  --message-body "Hi Jane, based on your interest in walkable neighborhoods..."
+```
+
+### Add Tags
+```bash
+ck run agent crm-agent \
+  --operation "tag" \
+  --contact-name "Jane Smith" \
+  --tags-add "email-subscriber,downloaded-guide" \
+  --tags-remove "cold-buyer"
+```
+
+## Contact Search Escalation
+
+When searching for a contact, follow this order:
+
+1. **Exact name:** "Jane Smith"
+2. **Partial name:** "Jane" or "Smith"
+3. **Alternative spellings:** "Jon" for "John," "Cath" for "Kath"
+4. **Phone/email:** If name search fails and contact has phone/email
+5. **Fuzzy match:** Phonetic variations
+6. **Report not found:** Only after exhausting reasonable variations
+
+Example:
+```
+Search for "Michael Johnson"
+  → No results
+  → Try "Michael" + last name variations → No
+  → Try "Mike Johnson" → No
+  → Try phone: +1-512-555-0123 → Found!
+```
+
+## Standard Pipeline Stages
+
+| Stage | Meaning | Typical Duration |
+|-------|---------|------------------|
+| **New Lead** | Initial contact, unqualified | 1-3 days |
+| **Contacted** | Agent has reached out, awaiting response | 3-7 days |
+| **Qualified** | Confirmed buyer/seller intent, timeline clear | 1-4 weeks |
+| **Showing Properties** | Actively viewing homes | 1-8 weeks |
+| **Making Offers** | Submitting offers on specific properties | 1-4 weeks |
+| **Under Contract** | Offer accepted, moving to closing | 30-60 days |
+| **Closed - Won** | Transaction completed successfully | Final stage |
+| **Closed - Lost** | Did not proceed (reason tracked) | Final stage |
+
+## Tag Categories & Examples
+
+### Source Tags
+- youtube-lead
+- website-lead
+- referral
+- open-house
+- cold-call
+- previous-client
+
+### Stage Tags
+- new-lead
+- nurturing
+- active-buyer
+- active-seller
+- under-contract
+- closed
+
+### Interest Tags
+- austin-interested
+- barton-hills
+- east-austin
+- west-lake-hills
+- first-time-buyer
+- tech-industry
+- family-relocation
+
+### Price Range Tags
+- price-range-200k-400k
+- price-range-400k-600k
+- price-range-600k-1m
+
+### Content Tags
+- downloaded-guide
+- email-subscriber
+- webinar-attendee
+- video-viewer
+- blog-reader
+
+## Messaging Rules
+
+### SMS
+```
+Character limit: 160 characters (single message)
+Tone: Conversational, personal
+Timing: Business hours only (9 AM - 7 PM local time)
+Example:
+  "Hi Jane, I found 3 homes that match what we discussed. 
+   Want me to send the details? Reply YES or let me know if you 
+   want to schedule a tour."
+```
+
+### Email
+```
+Transactional (quick confirmations): 2-4 sentences
+Longer emails: 3-5 paragraphs
+Always include: Agent signature block
+Never include: Attachments (unless requested)
+Example subject lines:
+  "Your Austin Neighborhood Guide"
+  "3 Homes Just Listed in Barton Hills"
+  "Let's Schedule Your Tour"
+```
+
+## Quality Checklist
+
+- [ ] Contact confirmed as correct before any write operations
+- [ ] Conversation history reviewed before composing messages
+- [ ] Messages match {{AGENT_NAME}}'s communication style
+- [ ] Tags follow lowercase-hyphenated convention
+- [ ] Pipeline updates include explanatory notes
+- [ ] No messages sent without appropriate review/authorization
+- [ ] All operations logged in response summary
+- [ ] Search exhaustion (2-3 variations) before reporting "not found"
+- [ ] Bulk operations (5+) confirmed before executing
+- [ ] Permission requested for all write operations
+
+## Related Workflows
+
+- [Customer Response Flow](/workflows/customer-response-flow) — Receives contacts from customer-response agent
+- [Lead Magnet Generation Workflow](/workflows/lead-magnet-generation) — Captures leads via lead magnet gates
+
+## Best Practices
+
+- **Search thoroughly:** Always try at least 2-3 search variations
+- **Show before acting:** Display what you found before updating
+- **Bulk confirm:** For operations on 5+ contacts, get explicit confirmation
+- **Conversation context:** Always read message history before composing replies
+- **Tag discipline:** Use consistent lowercase-hyphenated format
+- **Stage notes:** Always document why a contact is moving stages
+- **Lost reason:** Track why deals don't close (timeline changed, went with competitor, etc.)
+
+## Integration with Other Agents
+
+- Receives contacts from [Customer Response Agent](/agent-instructions/customer-response)
+- Receives contacts from [Voice Processor Agent](/agent-instructions/voice-processor) (CLIENT_NOTE items)
+- Triggers [Email Writer Agent](/agent-instructions/email-writer) nurture sequences
+- Logs interactions from [YouTube Video Pipeline Agent](/agent-instructions/youtube-video-pipeline) video views
+- Manages contacts created by [Relocation Guide Generator Agent](/agent-instructions/relocation-guide-generator) lead magnet gates
+
+## Automation Triggers
+
+When tags are added, automatically:
+
+| Tag | Trigger |
+|-----|---------|
+| active-buyer | Daily property alerts, weekly market updates |
+| downloaded-guide | Welcome email, nurture sequence |
+| email-subscriber | Nurture sequence enrollment |
+| under-contract | Closing document emails, timeline reminders |
+| cold-buyer | 1x/week content emails, relocation series |
+| warm-buyer | 2x/week nurture, property matching |
+
+Automations configured in CRM, but {{AGENT_NAME}} can modify per contact.

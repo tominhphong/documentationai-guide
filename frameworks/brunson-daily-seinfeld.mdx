@@ -1,0 +1,98 @@
+---
+title: "Daily Seinfeld Email Framework"
+description: "Storytelling technique for agent-to-client emails: micro-stories, pivots, soft CTAs."
+last_reviewed: 2026-04-26
+type: reference
+audience: ai-agent-primary
+use_case: ["craft-email-sequences", "build-client-relationships"]
+keywords: [email, storytelling, Brunson, Daily Seinfeld, narrative, CTA]
+---
+
+> Source: `knowledge_bases/prompts/email_sequence.md`
+
+## What It Is
+
+The Daily Seinfeld method is a storytelling framework for email marketing that treats each message like a conversation between friends rather than a pitch. Instead of promotional angles, each email opens with a relatable micro-story from real life, pivots to why it matters for the reader, and closes with a soft, low-pressure invitation to respond.
+
+Attributed to Russell Brunson (Expert Secrets), the principle rests on pattern interrupts: your reader receives dozens of polished sales emails daily. A casual story, with specific local details and a genuine moment of insight, cuts through the noise.
+
+## Why It Works
+
+**Pattern Interruption:** A subject line reading "So I'm standing in a model home and the sales rep says something..." doesn't look like a marketing email. Your reader opens it without defensiveness.
+
+**Relatability & Trust:** Sharing a real local observation (a neighborhood issue, a buyer reaction, a market shift you witnessed) positions you as boots-on-the-ground, not distant. Specificity—street names, dollar amounts, emotional beats—makes the story credible.
+
+**Soft Call-to-Action:** Hard sells create friction. A soft CTA ("Hit reply if you want the breakdown") invites engagement without obligation. Low-pressure responses see higher quality leads.
+
+**Narrative Memory:** Stories stick in the mind better than facts. A reader may forget your market data, but they remember the story that conveyed it.
+
+## Core Principles
+
+1. **Start mid-story** — Skip pleasantries. Open with action or observation: "drove past your future neighborhood today" or "I almost told them not to buy it."
+
+2. **One emotional beat** — 100–150 words. Include a specific detail (neighborhood name, price point, reaction) and one moment of surprise, humor, or realization.
+
+3. **Bridge to reader relevance** — "Here's why this matters if you're thinking about..." or "The reason I'm telling you this..." Explicitly connect the story to the reader's situation.
+
+4. **Offer, don't demand** — "Want me to send you..." or "Just reply [keyword]" or "Let me know if this resonates." Make the ask easy.
+
+5. **Sign with personality** — "Talk soon, [Name]" or "–[Name]" — avoid corporate closings.
+
+6. **Bonus P.S.** — Local fact or tip. Often the most-read section.
+
+## How the email-writer Agent Uses It
+
+The **email-writer agent** (in `.claude/agents/`) applies this framework when generating sequences:
+
+1. **Subject line generation:** Queries local data (recent neighborhood sales, market events) and generates curiosity-driven subjects like "the flood zone thing nobody mentions."
+
+2. **Micro-story drafting:** References the agent's conversation history RAG to understand their voice, then creates 100–150-word stories grounded in real observations.
+
+3. **Pivot creation:** Automatically bridges from story to reader need (buyer, seller, investor) with clear relevance statements.
+
+4. **CTA optimization:** Suggests soft invitations matched to the agent's communication style.
+
+5. **Sequence structuring:** Plans multi-email sequences (welcome, weekly nurture, seasonal) with varied topics but consistent storytelling approach.
+
+## Example Structure
+
+```
+Subject: [Curiosity + local context]
+Opening: [Start mid-story, 1-2 sentences]
+Story: [100–150 words, specific details, one emotional beat]
+Pivot: [25–50 words: why this matters to reader]
+CTA: [Soft invite: "reply [keyword]" or "want me to send..."]
+Sign-off: [Casual]
+P.S.: [Local fact or tip]
+```
+
+## Sequence Patterns
+
+**Welcome Sequence (5 emails, 10 days):**
+- Day 1: Origin story (why you specialize in relocations)
+- Day 3: Mistake pattern (#1 error people make in [area])
+- Day 5: Neighborhood spotlight (your favorite hidden gem)
+- Day 7: Client pattern ("most of my buyers end up...")
+- Day 10: Value offer (free guide, market report, consultation)
+
+**Weekly Nurture:**
+- Monday: Weekend observation
+- Tuesday: Neighborhood spotlight
+- Wednesday: Con-to-Pro flip (objection reframe)
+- Thursday: Client pattern or market data
+- Friday: Partner/lifestyle recommendation
+
+**Seasonal:** Hurricane prep, snowbird traffic, summer tips, holidays, tax season, school enrollment.
+
+## Key Constraints
+
+- **Max 200 words per email** — scannable, not overwhelming
+- **Plain text wins** — HTML templates feel corporate; plain text feels personal
+- **One topic per email** — focus clarity
+- **Real stories only** — fabrication erodes trust
+- **Avoid generic language** — no "dream home," no buzzwords
+
+## Related
+
+- [channel-junkies-hooks](/frameworks/channel-junkies-hooks) — similar story-to-hook pattern for video
+- [skill-quick-reference](/knowledge-qa/skill-quick-reference) — customer-response skill uses similar voice matching

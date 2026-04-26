@@ -1,0 +1,164 @@
+---
+title: "Python RAG Tools"
+description: "Backend Python modules for vector search, knowledge base creation, and database management."
+last_reviewed: 2026-04-26
+type: reference
+audience: ai-agent-primary
+use_case: ["knowledge-retrieval", "vector-search", "knowledge-base-management"]
+keywords: [chroma, embeddings, semantic-search, python, rag]
+---
+
+# Python RAG Tools
+
+Backend Python modules implementing semantic search, multi-database queries, knowledge base creation, and database administration using ChromaDB and HuggingFace embeddings.
+
+> Source: `tools/rag_tools/`
+
+## Module Overview
+
+| Module | Purpose |
+|--------|---------|
+| `rag_query.py` | Single-database semantic search |
+| `rag_query_multi.py` | Cross-database merged queries |
+| `rag_system_manager.py` | Database administration (create, list, delete) |
+
+## rag_query.py
+
+Query a single ChromaDB vector database with semantic search. Auto-detects collection name and returns results with content, source metadata, and relevance scores.
+
+**Public Functions:**
+
+| Function | Params | Returns | Notes |
+|----------|--------|---------|-------|
+| `query_knowledge_base()` | question: str, db_path: str, k: int | List[Dict] with rank, score, source, content | Core search function |
+| `format_results_text()` | results: List[Dict], question: str | str (formatted text) | Human-readable output |
+
+**Dependencies:**
+- `chromadb` — Vector database client
+- `langchain_community.embeddings.HuggingFaceEmbeddings` — Embedding model
+- `langchain_chroma.Chroma` — ChromaDB integration
+
+**Environment Variables:** None required (uses embedded HuggingFace model).
+
+**Example:**
+```python
+from rag_query import query_knowledge_base
+
+results = query_knowledge_base(
+    "What neighborhoods are best for families?",
+    "./kb",
+    10
+)
+
+for r in results:
+    print(f"Result {r['rank']} (score: {r['score']})")
+    print(f"Source: {r['source']}")
+    print(f"Content: {r['content']}\n")
+```
+
+**CLI Usage:**
+```bash
+python3 rag_query.py "your question" --db-path ./kb --k 5
+python3 rag_query.py "market trends" --json  # Output as JSON
+```
+
+---
+
+## rag_query_multi.py
+
+Query multiple ChromaDB vector databases simultaneously and merge results. Useful for cross-referencing information across separate knowledge bases.
+
+**Public Functions:**
+
+| Function | Params | Returns | Notes |
+|----------|--------|---------|-------|
+| `query_multiple_databases()` | question: str, db_paths: List[str], k: int | List[Dict] with rank, score, source, content | Parallel queries |
+| `merge_results()` | results_by_db: Dict[str, List] | List[Dict] | Ranked merged results |
+
+**Dependencies:**
+- Same as `rag_query.py` (chromadb, langchain)
+
+**Example:**
+```python
+from rag_query_multi import query_multiple_databases
+
+results = query_multiple_databases(
+    question="Tampa market trends",
+    db_paths=["./kb/agent_content", "./kb/market_research", "./kb/strategy"],
+    k=5
+)
+```
+
+**CLI Usage:**
+```bash
+python3 rag_query_multi.py "query" --databases kb1 kb2 kb3 --k 5
+```
+
+---
+
+## rag_system_manager.py
+
+Database administration: list, create, and delete knowledge bases. Manages ChromaDB collection metadata.
+
+**Public Functions:**
+
+| Function | Params | Returns | Notes |
+|----------|--------|---------|-------|
+| `list_databases()` | — | List[Dict] with name, doc_count, last_updated | Lists all KBs |
+| `create_knowledge_base()` | source_dir: str, name: str, chunk_size: int | Dict with status, doc_count, chunks | Indexes documents |
+| `delete_knowledge_base()` | name: str | bool | Removes KB |
+
+**Dependencies:**
+- `chromadb`
+- `langchain_community.document_loaders` — PDF, markdown, text support
+- `langchain.text_splitter.RecursiveCharacterTextSplitter` — Document chunking
+- `langchain_community.embeddings.HuggingFaceEmbeddings`
+
+**Example:**
+```python
+from rag_system_manager import create_knowledge_base, list_databases
+
+# Create new KB
+create_knowledge_base(
+    source_dir="/data/transcripts",
+    name="youtube_kb",
+    chunk_size=1000
+)
+
+# List all KBs
+dbs = list_databases()
+for db in dbs:
+    print(f"{db['name']}: {db['doc_count']} docs")
+```
+
+**CLI Usage:**
+```bash
+python3 rag_system_manager.py list
+python3 rag_system_manager.py create --source /data/docs --name my_kb --chunk-size 1500
+python3 rag_system_manager.py delete --name old_kb
+```
+
+---
+
+## Configuration
+
+**Embedding Model:** `sentence-transformers/all-MiniLM-L6-v2` (hardcoded in source)
+- Lightweight, fast inference
+- 384-dimensional embeddings
+- Optimized for semantic search
+
+**Database Path:** Defaults to `./kb` (local directory). Can be overridden via `--db-path` or programmatically.
+
+**Supported File Types (in knowledge base creation):**
+- `.txt` — Plain text
+- `.md` — Markdown
+- `.pdf` — PDF documents
+- `.json` — JSON transcripts
+
+---
+
+## Related
+
+- [RAG MCP Tools](/mcp-tools/rag) — MCP server wrappers
+- [YouTube Tools](/python-tools/youtube-tools) — Feeds transcripts to RAG
+- [CSV Tools](/python-tools/csv-tools) — Imports conversation data

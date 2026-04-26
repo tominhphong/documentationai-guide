@@ -1,0 +1,181 @@
+---
+title: "Setup Overview"
+description: "High-level setup path; detailed walkthrough in help-center."
+last_reviewed: 2026-04-26
+type: workflow
+audience: both
+use_case: ["quick-reference-setup", "understand-setup-steps", "plan-installation"]
+keywords: [setup, installation, Homebrew, Python, Node, MCP, configuration]
+---
+
+# Setup Overview
+
+> Source: `README.md` Part 1: Getting Set Up
+
+The framework runs entirely on your Mac. Setup takes 2–5 minutes and includes installing dependencies, building the MCP server, and configuring your profile.
+
+<Warning>
+For **complete step-by-step instructions with commands to copy-paste**, see the [Setup Guide](/help-center/setup-guide) in the help center.
+
+This page is a reference overview only.
+</Warning>
+
+## Setup Phases
+
+### Phase 1: System Dependencies (5 minutes)
+
+Install tools your Mac needs:
+
+```bash
+# Homebrew (package manager)
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# Python 3.12, Node.js, YouTube tools, media processing
+brew install python@3.12 node yt-dlp ffmpeg
+
+# Claude Code CLI
+npm install -g @anthropic-ai/claude-code
+```
+
+**What each does:**
+- **Python** — Runs data processing, knowledge base, and content generation scripts
+- **Node.js** — Powers the MCP server that connects Claude to your tools
+- **yt-dlp** — Downloads YouTube video transcripts for free (no API key needed)
+- **ffmpeg** — Handles audio and video file processing
+- **Claude Code** — CLI tool for starting sessions and managing agents
+
+### Phase 2: Framework Installation (2 minutes)
+
+Clone the framework and run automated setup:
+
+```bash
+cd ~/
+git clone <your-repo-url> "real-estate-ai"
+cd "real-estate-ai"
+bash scripts/setup.sh
+```
+
+The setup script:
+- Installs Python dependencies from `requirements.txt`
+- Builds the MCP server (TypeScript → JavaScript)
+- Initializes configuration templates
+- Creates empty knowledge base directories
+
+### Phase 3: Configuration (2 minutes)
+
+Fill in your personal information so all generated content includes your name, phone, market, etc.
+
+Edit `config/agent_profile.yaml`:
+
+```yaml
+agent:
+  name: "Jane Smith"
+  phone: "(555) 123-4567"
+  email: "jane@janesmithrealty.com"
+  website: "https://www.janesmithrealty.com"
+  brokerage: "Sunshine Realty"
+  city: "Tampa"
+  state: "FL"
+  youtube_handle: "@janesmithrealty"
+  booking_link: "https://calendly.com/jane-smith"
+  credential_line: "Over 8 years helping buyers relocate to Tampa Bay."
+  team_description: "solo agent"
+```
+
+These values populate template variables (`{{AGENT_NAME}}`, `{{AGENT_CITY}}`, etc.) throughout all agents and generated content.
+
+### Phase 4: API Keys (Optional)
+
+Only required if you're using external services. Edit `config/.env`:
+
+```bash
+cp config/.env.example config/.env
+```
+
+Then add any keys you have:
+
+| Key | Unlocks | Required? |
+|-----|---------|-----------|
+| `CRM_API_KEY` | GoHighLevel contact/pipeline management | Only if you use GHL |
+| `CRM_LOCATION_ID` | Your GHL location ID | Only if you use GHL |
+| `ANTHROPIC_API_KEY` | Claude for additional features | Optional |
+
+**Note:** All core features work without API keys. Knowledge base, content generation, and agents run fully locally.
+
+### Phase 5: MCP Server Connection (2 minutes)
+
+Tell Claude Code where to find your MCP server. Edit or create `~/.mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "real-estate-agent": {
+      "command": "node",
+      "args": ["/Users/YOURNAME/real-estate-ai/mcp_server/dist/index.js"]
+    }
+  }
+}
+```
+
+Replace `YOURNAME` with your macOS username.
+
+### Phase 6: Test It Works
+
+Open Terminal and start a Claude Code session:
+
+```bash
+cd ~/real-estate-ai
+claude
+```
+
+Try a simple command:
+
+```
+Search my knowledge base for what I've said about [neighborhood]
+```
+
+Claude should respond that your knowledge base is empty (you haven't ingested YouTube yet), but the connection works.
+
+## Optional: Ingest Your YouTube Channel
+
+Once setup is complete, you can add your video transcripts to the knowledge base:
+
+```bash
+bash scripts/ingest-channel.sh @YourChannelHandle
+```
+
+This downloads all public transcripts and makes them searchable. You can add more channels anytime.
+
+## What's Provided vs. What You Provide
+
+| Component | Provided | You Provide |
+|-----------|----------|------------|
+| 9 agents | Yes | — |
+| 3 skills | Yes | — |
+| 17 MCP tools | Yes | — |
+| Knowledge base structure | Yes | Your YouTube content, documents |
+| Marketing frameworks | Yes (pre-loaded) | — |
+| Your profile data | No | Yes (name, phone, market, credentials) |
+| API keys | No | If using external services (CRM, Supabase, etc.) |
+
+## After Setup: Daily Use
+
+Claude Code is now ready. You can:
+
+- Start sessions with `claude` in Terminal (or use Claude Desktop app)
+- Ask agents to generate content, manage CRM, search your knowledge base
+- All data stays on your computer; you own everything
+
+See [Design Principles](/framework/principles) for how the system works under the hood.
+
+## Detailed Setup Instructions
+
+For complete step-by-step commands, see:
+
+**[Setup Guide](/help-center/setup-guide)** — Copy-paste instructions for every step
+
+## Related Topics
+
+- [Framework Overview](/framework/overview)
+- [Desktop App Setup](/framework/desktop-setup)
+- [Architecture & Components](/framework/architecture)

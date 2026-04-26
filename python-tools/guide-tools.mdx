@@ -1,0 +1,217 @@
+---
+title: "Python Guide Tools"
+description: "Backend Python modules for relocation guide generation and Word document export."
+last_reviewed: 2026-04-26
+type: reference
+audience: ai-agent-primary
+use_case: ["guide-generation", "document-export", "personalization"]
+keywords: [relocation-guide, word-export, docx, personalization, real-estate]
+---
+
+# Python Guide Tools
+
+Backend Python modules for generating agent-personalized relocation guides from RAG knowledge base data and converting them to formatted Word documents. Produces comprehensive guides with neighborhoods, market insights, schools, and lifestyle information.
+
+> Source: `tools/guide_tools/`
+
+## Module Overview
+
+| Module | Purpose |
+|--------|---------|
+| `generate_guide.py` | Generate relocation guide JSON from RAG data |
+| `guide_to_docx.py` | Convert guide JSON to formatted Word document |
+
+## generate_guide.py
+
+Generate a relocation guide from RAG knowledge base data. Queries the agent's content database for insights on neighborhoods, market trends, lifestyle, schools, and local resources, then structures everything into a comprehensive JSON template.
+
+**Public Functions:**
+
+| Function | Params | Returns | Notes |
+|----------|--------|---------|-------|
+| `extract_agent_insights()` | db_name: str, agent_name: str | Dict | Queries RAG for agent-specific content |
+| `generate_neighborhood_section()` | insights: Dict | Dict | Structures neighborhood data |
+| `generate_market_section()` | insights: Dict | Dict | Organizes market trends |
+| `generate_lifestyle_section()` | insights: Dict | Dict | Curates lifestyle information |
+| `generate_guide()` | agent_name: str, db_name: str | Dict | Full pipeline |
+
+**Dependencies:**
+- `chromadb` — RAG query
+- `langchain` modules for embeddings
+
+**Environment Variables:** None required (uses embedded models).
+
+**Example:**
+```python
+from generate_guide import generate_guide
+import json
+
+guide = generate_guide(
+    agent_name="aaron_chand",
+    db_name="aaron_youtube_kb"
+)
+
+# Save guide as JSON
+json.dump(guide, Path("aaron_guide.json").open("w"), indent=2)
+
+print(f"Guide generated with {len(guide['sections'])} sections")
+print(f"Agent: {guide['agent_name']}")
+```
+
+**CLI Usage:**
+```bash
+python3 generate_guide.py --agent aaron_chand --database aaron_youtube_kb
+python3 generate_guide.py --agent maria_santos --database maria_content_kb --output guide.json
+```
+
+**Output Structure:**
+```json
+{
+  "agent_name": "aaron_chand",
+  "created_at": "2026-04-26T10:15:00Z",
+  "sections": [
+    {
+      "id": "neighborhoods",
+      "title": "Neighborhoods & Communities",
+      "subsections": [
+        {
+          "title": "Downtown Tampa",
+          "content": "...",
+          "key_stats": ["Population: X", "Median Price: $Y"]
+        }
+      ],
+      "agent_insights": "Aaron's perspective on each area..."
+    },
+    {
+      "id": "market",
+      "title": "Housing Market Trends",
+      "content": "...",
+      "agent_perspective": "..."
+    }
+  ],
+  "agent_contact": {
+    "name": "Aaron Chand",
+    "email": "aaron@example.com",
+    "phone": "+1-555-0100",
+    "cta": "Schedule a consultation"
+  }
+}
+```
+
+**Sections Generated:**
+1. **Neighborhoods & Communities** — Area profiles with stats, schools, walkability
+2. **Housing Market** — Trends, price ranges, inventory, tips for buyers
+3. **Lifestyle & Amenities** — Restaurants, parks, entertainment, culture
+4. **Schools & Education** — School ratings, districts, universities
+5. **Transportation & Commuting** — Public transit, highways, airport proximity
+6. **Cost of Living** — Utilities, groceries, insurance, taxes
+7. **Moving Logistics** — Checklist, timeline, local services
+8. **Agent Insights** — Personalized recommendations from agent's content
+
+---
+
+## guide_to_docx.py
+
+Convert a relocation guide JSON to a professionally formatted Word document (.docx). Applies styling, creates table of contents, and embeds agent branding.
+
+**Public Functions:**
+
+| Function | Params | Returns | Notes |
+|----------|--------|---------|-------|
+| `load_guide_json()` | path: str | Dict | Parses guide JSON |
+| `create_document()` | guide: Dict | Document | Creates docx.Document |
+| `add_styling()` | doc: Document, guide: Dict | — | Applies formatting |
+| `add_toc()` | doc: Document | — | Generates table of contents |
+| `export_docx()` | guide_path: str, output_path: str | str | Full conversion pipeline |
+
+**Dependencies:**
+- `python-docx` — Word document creation
+- `pathlib` — Path handling
+
+**Example:**
+```python
+from guide_to_docx import export_docx
+
+output_path = export_docx(
+    guide_path="aaron_guide.json",
+    output_path="aaron_relocation_guide.docx"
+)
+
+print(f"Word document created: {output_path}")
+```
+
+**CLI Usage:**
+```bash
+python3 guide_to_docx.py --input guide.json
+python3 guide_to_docx.py --input guide.json --output relocation_guide.docx
+```
+
+**Document Features:**
+- **Header:** Agent name and branding
+- **Table of Contents:** Auto-generated from section headings
+- **Styling:** Heading 1 (sections), Heading 2 (subsections), body text (Normal), callouts (Emphasis)
+- **Page Breaks:** Between major sections for readability
+- **Footer:** Agent contact information on every page
+- **Formatting:** Justified text, proper margins, professional fonts
+
+**Output:**
+- File format: `.docx` (Microsoft Word 2007+)
+- Compatible with: Microsoft Word, Google Docs, LibreOffice
+- Size: Typically 50-150 KB per guide
+- Editable: Full support for editing in Word or online editors
+
+---
+
+## Integration Workflow
+
+**1. Index Agent Content:**
+```bash
+python3 rag_system_manager.py create --source /data/aaron_videos --name aaron_youtube_kb
+```
+
+**2. Ingest YouTube Transcripts:**
+```bash
+python3 fetch_videos.py --channel "@ChannelHandle" --output ./transcripts
+python3 ingest_to_rag.py --input ./transcripts/ChannelHandle --database aaron_youtube_kb
+```
+
+**3. Generate Guide:**
+```bash
+python3 generate_guide.py --agent aaron_chand --database aaron_youtube_kb > aaron_guide.json
+```
+
+**4. Export to Word:**
+```bash
+python3 guide_to_docx.py --input aaron_guide.json --output aaron_relocation_guide.docx
+```
+
+**5. Distribute:**
+- Email to leads
+- Upload to website
+- Print as physical collateral
+- Share in CRM as attachment
+
+---
+
+## Customization
+
+**Agent Branding:**
+- Modify `agent_contact` section in JSON before exporting to Word
+- Add logo/images by editing the Word document after generation
+
+**Content Customization:**
+- Edit JSON guide sections directly
+- Re-export to Word without regenerating
+
+**Styling:**
+- Word document uses default Calibri font
+- Can be customized in Word after generation
+- Heading colors, margins, spacing adjustable
+
+---
+
+## Related
+
+- [Guide MCP Tools](/mcp-tools/guide) — MCP server wrappers
+- [RAG Tools](/python-tools/rag-tools) — Powers the guide data extraction
+- [YouTube Tools](/python-tools/youtube-tools) — Populates RAG with agent content

@@ -1,0 +1,209 @@
+---
+title: "Repository Layout"
+description: "Directory structure and purpose of each top-level folder."
+last_reviewed: 2026-04-26
+type: reference
+audience: ai-agent-primary
+use_case: ["find-files", "understand-organization", "navigate-codebase"]
+keywords: [directory, structure, folders, agents, skills, tools, knowledge-base]
+---
+
+# Repository Layout
+
+> Source: README.md directory structure + `.claude/CLAUDE.md`
+
+The framework is organized for clarity: configuration in one place, agents/skills/rules in another, tools grouped by function, knowledge bases separated by type.
+
+## Top-Level Directories
+
+### `.claude/` — Claude Code Configuration
+
+All Claude Code-specific files live here. This is where agents, skills, rules, and memory live.
+
+```
+.claude/
+  CLAUDE.md                 # This folder's purpose, tool reference, scope discipline
+  agents/                   # 9 agent definitions (each handles one task type)
+    youtube-video-pipeline.md
+    youtube-to-blog.md
+    email-writer.md
+    teleprompter.md
+    content-repurposer.md
+    voice-processor.md
+    crm-agent.md
+    customer-response.md
+    relocation-guide-generator.md
+  skills/                   # 3 quick-action skills (faster than full agents)
+    channel-performance.md
+    customer-response.md
+    cma-generator.md
+  rules/                    # Style and convention rules
+    content-style.md        # Brand voice, hook formulas, Fair Housing rules
+    node-conventions.md     # TypeScript/Node.js standards
+    python-conventions.md   # Python style and project structure
+  memory/                   # Persistent memory index (auto-loaded by Claude Code)
+    MEMORY.md               # Topic index, loaded on demand
+```
+
+### `config/` — Configuration & Profiles
+
+User data and system configuration.
+
+```
+config/
+  agent_profile.yaml        # Your name, phone, market, YouTube handle, credentials
+  channels.yaml             # YouTube channels to ingest (your channel + competitors)
+  .env.example              # Template for API keys (CRM_API_KEY, ANTHROPIC_API_KEY, etc.)
+  .env                      # YOUR API keys (never committed to git)
+```
+
+When you run setup, `agent_profile.yaml` gets parsed and its values populate all template variables (`{{AGENT_NAME}}`, etc.) throughout agents and content generation.
+
+### `mcp_server/` — MCP Server (TypeScript)
+
+The bridge between Claude Code and your tools. Exposes 17 built-in tools as MCP resources.
+
+```
+mcp_server/
+  src/
+    index.ts                # Main MCP server entry point
+    tools/                  # Tool definitions (routing to Python scripts)
+    handlers/               # Tool execution logic
+  dist/                     # Compiled JavaScript (output from npm run build)
+  package.json              # Node dependencies
+  tsconfig.json
+```
+
+Run `npm run build` to compile TypeScript → JavaScript. Claude Code calls `node mcp_server/dist/index.js` to start the server.
+
+### `tools/` — Python Tool Scripts
+
+Business logic, organized by function. Each subdirectory contains standalone scripts (not a monolithic package).
+
+```
+tools/
+  rag_tools/                # Vector database & knowledge base operations
+    create_knowledge_base.py
+    search_knowledge_base.py
+    ingest_youtube_channel.py
+  youtube_tools/            # YouTube transcript and metadata extraction
+    download_transcripts.py
+    extract_metadata.py
+    analyze_channel.py
+  content_tools/            # Content generation (blogs, emails, social clips)
+    generate_blog_post.py
+    generate_email_sequence.py
+    generate_social_clips.py
+  csv_tools/                # Data import and cleanup
+    import_contacts.py
+    standardize_phone_numbers.py
+    detect_duplicates.py
+  guide_tools/              # Relocation guide generation
+    generate_guide.py
+    convert_to_word.py
+    convert_to_pdf.py
+  crm_tools/                # GoHighLevel REST client
+    search_contact.py
+    create_contact.py
+    send_message.py
+    update_pipeline.py
+  utilities/                # Shared helpers (logging, config loading, etc.)
+```
+
+Each script uses `if __name__ == "__main__":` guard and accepts CLI arguments. Python 3.10+, all dependencies in `requirements.txt`.
+
+### `knowledge_bases/` — Data & Models
+
+All searchable content and vector databases.
+
+```
+knowledge_bases/
+  vectors/                  # ChromaDB vector stores (auto-created by ingestion)
+    youtube_rag/            # Your ingested YouTube channel transcripts
+    documents/              # Your PDFs, Word docs, text files (if ingested)
+    youtube_channel_junkies/ # Pre-built Channel Junkies strategy DB
+  books/                    # Pre-loaded marketing frameworks (vector DBs)
+    hormozi_100m_offers/
+    hormozi_100m_leads/
+    brunson_dotcom_secrets/
+    brunson_traffic_secrets/
+    # ... more frameworks
+  documents/                # Drop your raw files here for ingestion
+    your_doc_1.pdf
+    your_doc_2.docx
+  prompts/                  # Prompt templates for content generation
+    youtube_video_outline_prompt.md
+    blog_post_template.md
+    email_sequence_template.md
+```
+
+Knowledge bases use ChromaDB for local vector storage. No data sent to external services.
+
+### `templates/` — Content Templates
+
+Reusable templates for generating content (not executable, used as reference by agents).
+
+```
+templates/
+  email_sequences/          # Email sequence templates
+    daily_seinfeld_framework.txt
+    welcome_sequence.txt
+    nurture_sequence.txt
+  guides/                   # Relocation guide templates
+    guide_structure.md
+    section_templates/
+```
+
+### `scripts/` — Setup & Automation
+
+One-time setup scripts and batch operations.
+
+```
+scripts/
+  setup.sh                  # Install Python packages, build MCP server, configure agents
+  build-knowledge-base.sh   # Ingest all YouTube channels at once
+  ingest-channel.sh         # Ingest a single YouTube channel
+  requirements.txt          # Python dependencies
+```
+
+Run these from Terminal, not from Claude Code.
+
+### `examples/` — Sample Files
+
+Reference configurations for getting started.
+
+```
+examples/
+  sample_agent_profile.yaml        # Filled-in profile example
+  sample_channels.yaml             # Example channel configuration
+  sample_agent.md                  # Template for creating custom agents
+```
+
+Use these as templates when setting up your own configuration.
+
+## File Naming Conventions
+
+| Type | Convention | Example |
+|------|-----------|---------|
+| Agents | kebab-case + `.md` | `youtube-video-pipeline.md` |
+| Skills | kebab-case + `.md` | `channel-performance.md` |
+| Rules | kebab-case + `.md` | `content-style.md` |
+| Python scripts | snake_case + `.py` | `create_knowledge_base.py` |
+| TypeScript files | camelCase + `.ts` | `index.ts`, `toolHandlers.ts` |
+| Config files | yaml or env | `agent_profile.yaml`, `.env` |
+| Templates | descriptive name | `daily_seinfeld_framework.txt` |
+
+## Key Files Not in Subdirectories
+
+| File | Purpose |
+|------|---------|
+| `README.md` | Main framework documentation (setup, usage, FAQ) |
+| `DESKTOP-SETUP.md` | Using Claude Desktop app instead of terminal |
+| `.gitignore` | Files not committed (`.env`, `node_modules/`, etc.) |
+| `package.json` | Node.js dependencies and build scripts |
+
+## Related Topics
+
+- [Architecture & Components](/framework/architecture)
+- [Setup Overview](/framework/setup-overview)
+- [Code Standards & Conventions](/core-rules/node-conventions)

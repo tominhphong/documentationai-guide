@@ -1,0 +1,127 @@
+---
+title: "Channel Junkies Hook Formulas"
+description: "YouTube hook patterns: curiosity gap, problem-promise, list-tease, comparison, momentum."
+last_reviewed: 2026-04-26
+type: reference
+audience: ai-agent-primary
+use_case: ["write-youtube-hooks", "optimize-video-openings"]
+keywords: [YouTube, hooks, Channel Junkies, curiosity gap, lead generation, video]
+---
+
+> Source: `knowledge_bases/prompts/video_outline_prompt.md`
+
+## What It Is
+
+Channel Junkies teaches a suite of proven YouTube hook formulas—opening lines (0:00–0:45) that interrupt the scroll, establish credibility, and lock viewers into the video. Unlike generic intros, these hooks follow specific patterns that trigger psychological curiosity, fear-of-missing-out, or problem-solution recognition.
+
+The framework applies to real estate content: market updates, neighborhood profiles, buyer/seller education, and lead-generation videos all benefit from strong hooks. A 2-second improvement in retention can double watch time and algorithm performance.
+
+## Core Hook Patterns
+
+### 1. Curiosity Gap
+
+**Pattern:** Open a question the viewer wants answered, but don't answer it immediately.
+
+**Formula:** "[Area] is the most popular [type] destination... but most people don't realize [surprising constraint]."
+
+**Examples:**
+- "Everyone's moving to [neighborhood]—but nobody talks about the HOA thing that happens in year 3."
+- "[County] has the most [feature] in the state... which means [unexpected consequence]."
+
+**Why it works:** The viewer's brain wants to close the gap. They keep watching to find the answer.
+
+### 2. Problem-Promise (Direct)
+
+**Pattern:** Name a pain point, promise immediate relief.
+
+**Formula:** "Before you [action] in [area], there are [number] things nobody talks about."
+
+**Examples:**
+- "Before you buy in [neighborhood], there are 4 things your agent won't tell you."
+- "If you're selling your house in [area], watch this first."
+
+**Why it works:** Speaks to a specific fear. The promise of solutions makes viewers stay.
+
+### 3. Comparison
+
+**Pattern:** Frame a choice between two options, make one unexpectedly superior.
+
+**Formula:** "[Area A] vs [Area B]—which one is actually better for [audience]?"
+
+**Examples:**
+- "[Neighborhood 1] vs [Neighborhood 2]—which is better for young families?"
+- "Buying now vs waiting—what the data actually shows."
+
+**Why it works:** Viewers invested in one side stay to defend their choice or learn better.
+
+### 4. Momentum / Newsjacking
+
+**Pattern:** Tie to a recent event or trend.
+
+**Formula:** "[Area] just got [development/change] and here's what it means for [audience]."
+
+**Examples:**
+- "A $200M development just broke ground in [area]—here's what happens next to prices."
+- "New school opened in [neighborhood]—how it changes the market."
+
+**Why it works:** Timely, relevant. Viewers feel like they're ahead of the curve.
+
+### 5. Honest Take / Authority Credential
+
+**Pattern:** Lead with personal experience and specificity.
+
+**Formula:** "I've helped [number] [buyers/sellers] in [area] and here's what I tell them first."
+
+**Examples:**
+- "I've shown 340 homes in [neighborhood]. Here's what actually matters."
+- "After 12 years selling in [area], I've never seen the market like this."
+
+**Why it works:** Social proof + specificity. Viewers trust experience.
+
+## Full Hook Structure (0:00–0:45)
+
+1. **Hook statement** (5–10 seconds): One of the patterns above.
+2. **Self-ID question** (10–15 seconds): Ask viewers if the video is for them. "If you're thinking about buying in [area] in the next year, this is for you."
+3. **Credibility signal** (5–10 seconds): Quick social proof. "[Number] families," "[years] in the market," credentials.
+4. **Roadmap** (5–10 seconds): Tell viewers what they'll learn. "I'm going to show you the 3 neighborhoods with the best resale, the 2 to avoid, and why."
+5. **Open loop** (Ending of hook): Leave a question unanswered. Viewers watch for the answer.
+
+**Example full hook (40 seconds):**
+> "Everyone's moving to [neighborhood]—but nobody talks about the thing that happens in year 3. If you're thinking about buying here, watch this. I've sold 47 homes in this area over the last 8 years, and I'm going to show you exactly what surprises buyers the most, why it matters, and how to plan for it. Let's go."
+
+## How youtube-video-pipeline Agent Uses Hooks
+
+The **youtube-video-pipeline agent** (upstream repo) applies these formulas when generating video outlines:
+
+1. **Pattern selection:** Analyzes competitor videos on the same topic, identifies which hook pattern has the highest engagement, recommends that pattern for the agent's video.
+
+2. **Topic-to-hook mapping:** Matches the video content to the most effective hook type:
+   - Market data → Momentum or Comparison
+   - Neighborhood profiles → Curiosity Gap or Honest Take
+   - Buyer education → Problem-Promise
+
+3. **Hook drafting:** Creates 3–5 hook options in plain language. Agent records the version that feels most natural.
+
+4. **CTR optimization:** Tests different hooks in thumbnails and analytics, learns what drives clicks for this agent's audience.
+
+5. **Sequence coordination:** If agent is planning a multi-part series, ensures each video's hook builds on the previous—series momentum.
+
+## Hook Pitfalls to Avoid
+
+- **Clickbait without payoff:** Promise in the hook must be delivered in the video. Broken promises hurt audience trust and watch-time metrics.
+- **Generic specificity:** "In [area]" is placeholder language. Use actual street names, prices, neighborhoods.
+- **Overstay the hook:** Get to valuable content by the 45-second mark, not 2 minutes into the video.
+- **Mismatch audience:** "If you're thinking about selling" doesn't work for a video about buyer financing. Nail the self-ID question.
+
+## Hook Metrics
+
+- **Retention at 0:15:** Does the hook hold viewers through the first 15 seconds? (YouTube's critical engagement point)
+- **Retention at 0:45:** Do viewers stay through the full hook into content?
+- **Audience retention graph:** Flat line through hook = good; cliff at hook end = hook failed.
+- **Click-through rate (CTR):** Hook quality affects thumbnail/title performance directly.
+
+## Related
+
+- [brunson-daily-seinfeld](/frameworks/brunson-daily-seinfeld) — storytelling principle; hooks are compressed stories
+- [mdx-gotchas](/knowledge-qa/mdx-gotchas) — similar pattern-interrupt concept for documentation
+- [skill-quick-reference](/knowledge-qa/skill-quick-reference) — channel-performance skill analyzes hook effectiveness in existing videos

@@ -1,0 +1,134 @@
+---
+title: "CRM Operations Tools"
+description: "MCP tools for contact search, messaging, and conversation retrieval from CRM systems."
+last_reviewed: 2026-04-26
+type: reference
+audience: ai-agent-primary
+use_case: ["contact-management", "crm-operations", "customer-messaging"]
+keywords: [crm, contacts, gohighlevel, messaging, conversations]
+---
+
+# CRM Operations Tools
+
+The CRM module wraps Python scripts for searching contacts, sending SMS and email messages, and retrieving conversation history from CRM systems. Works with GoHighLevel or similar REST API CRM platforms.
+
+> Source: `mcp_server/src/tools/crm.ts`
+
+## Tools Overview
+
+| Tool | Purpose | Params | Returns |
+|------|---------|--------|---------|
+| `crm_search_contacts` | Search CRM contacts | query, limit | Contact records with metadata |
+| `crm_send_message` | Send SMS or email to contact | contact_id, message, type | Send status and confirmation |
+| `crm_get_conversations` | Retrieve contact conversation history | contact_id | Chronological message thread |
+
+## crm_search_contacts
+
+Search CRM contacts by name, email, phone, tag, or free-text query. Returns matching contact records with key fields and metadata.
+
+```typescript
+server.tool("crm_search_contacts", {
+  query: string,                        // Search term: name, email, phone, tag, or keyword
+  limit?: number                        // Max contacts to return, 1-100 (default: 10)
+})
+```
+
+**Parameters:**
+- `query` (required): Search query — accepts contact name (first or last), email address, phone number, CRM tag, or free-text keyword.
+- `limit` (optional): Maximum number of contacts to return; valid range 1-100, default 10.
+
+**Returns:** List of contact records including: ID, name, email, phone, tags, last contact date, and custom fields from the CRM.
+
+**Example MCP call:**
+```json
+{
+  "name": "crm_search_contacts",
+  "arguments": {
+    "query": "John Smith",
+    "limit": 5
+  }
+}
+```
+
+**Side effects:**
+- Queries CRM API (GoHighLevel or configured endpoint).
+- Requires `CRM_API_KEY` environment variable or configured credentials.
+- Read-only operation.
+
+---
+
+## crm_send_message
+
+Send an SMS or email message to a CRM contact. Requires the contact ID and message content.
+
+```typescript
+server.tool("crm_send_message", {
+  contact_id: string,                   // CRM contact ID
+  message: string,                      // Message body to send
+  type?: string                         // Message type: "sms" | "email" (default: "sms")
+})
+```
+
+**Parameters:**
+- `contact_id` (required): Unique CRM contact identifier from `crm_search_contacts` or known from context.
+- `message` (required): Message body. For SMS: up to 160 characters recommended. For email: supports full HTML/markdown formatting.
+- `type` (optional): Delivery channel — `sms` for text message, `email` for email message. Default: `sms`.
+
+**Returns:** Send confirmation with delivery status, message ID, timestamp, and any validation warnings (e.g., bounced email, invalid phone).
+
+**Example MCP call:**
+```json
+{
+  "name": "crm_send_message",
+  "arguments": {
+    "contact_id": "contact_abc123",
+    "message": "Hi John, we have a great property in Clearwater available. Want to schedule a showing?",
+    "type": "sms"
+  }
+}
+```
+
+**Side effects:**
+- Sends message via CRM API (SMS gateway or email service).
+- Message is recorded in CRM conversation history.
+- Requires valid `contact_id` and CRM authentication.
+- SMS delivery depends on carrier availability.
+
+---
+
+## crm_get_conversations
+
+Retrieve conversation history for a CRM contact. Returns all messages across SMS, email, and other channels in chronological order.
+
+```typescript
+server.tool("crm_get_conversations", {
+  contact_id: string                    // CRM contact ID
+})
+```
+
+**Parameters:**
+- `contact_id` (required): Unique CRM contact identifier.
+
+**Returns:** Chronologically sorted conversation thread with: sender, timestamp, message type (SMS/email), message body, and any attachments or metadata.
+
+**Example MCP call:**
+```json
+{
+  "name": "crm_get_conversations",
+  "arguments": {
+    "contact_id": "contact_abc123"
+  }
+}
+```
+
+**Side effects:**
+- Reads conversation history from CRM API.
+- Read-only operation.
+- No rate limiting enforced; large conversation histories may take time to retrieve.
+
+---
+
+## Related
+
+- [Python CRM Tools](/python-tools/crm-tools) — Backend CRM client and configuration
+- [CSV Tools](/mcp-tools/csv) — Imports bulk contact lists via `csv_process_contacts`

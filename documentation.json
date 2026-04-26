@@ -17,6 +17,113 @@
               { "title": "What This System Is", "path": "introduction", "icon": "home" },
               { "title": "Quickstart", "path": "quickstart", "icon": "play" }
             ]
+          },
+          {
+            "group": "Framework",
+            "icon": "cube",
+            "pages": [
+              { "title": "Overview", "path": "framework/overview" },
+              { "title": "Architecture", "path": "framework/architecture" },
+              { "title": "Design Principles", "path": "framework/principles" },
+              { "title": "Repo Layout", "path": "framework/repo-layout" },
+              { "title": "Setup Overview", "path": "framework/setup-overview" },
+              { "title": "Desktop Setup", "path": "framework/desktop-setup" }
+            ]
+          },
+          {
+            "group": "Core Rules",
+            "icon": "shield-check",
+            "pages": [
+              { "title": "Real Estate Domain", "path": "core-rules/real-estate-domain" },
+              { "title": "Content Style", "path": "core-rules/content-style" },
+              { "title": "Node Conventions", "path": "core-rules/node-conventions" },
+              { "title": "Python Conventions", "path": "core-rules/python-conventions" }
+            ]
+          },
+          {
+            "group": "Workflows",
+            "icon": "diagram-project",
+            "pages": [
+              { "title": "1 Video to 5 Assets", "path": "workflows/1-video-5-assets" },
+              { "title": "Voice Cloning Pipeline", "path": "workflows/voice-cloning-pipeline" },
+              { "title": "Lead Magnet Generation", "path": "workflows/lead-magnet-generation" },
+              { "title": "Content Multiplier", "path": "workflows/content-multiplier" },
+              { "title": "Customer Response Flow", "path": "workflows/customer-response-flow" }
+            ]
+          },
+          {
+            "group": "Agent Instructions",
+            "icon": "robot",
+            "pages": [
+              { "title": "Email Writer", "path": "agent-instructions/email-writer" },
+              { "title": "Customer Response", "path": "agent-instructions/customer-response" },
+              { "title": "YouTube to Blog", "path": "agent-instructions/youtube-to-blog" },
+              { "title": "YouTube Video Pipeline", "path": "agent-instructions/youtube-video-pipeline" },
+              { "title": "Content Repurposer", "path": "agent-instructions/content-repurposer" },
+              { "title": "Teleprompter", "path": "agent-instructions/teleprompter" },
+              { "title": "Voice Processor", "path": "agent-instructions/voice-processor" },
+              { "title": "Relocation Guide Generator", "path": "agent-instructions/relocation-guide-generator" },
+              { "title": "CRM Agent", "path": "agent-instructions/crm-agent" }
+            ]
+          },
+          {
+            "group": "MCP Tools",
+            "icon": "plug",
+            "pages": [
+              { "title": "RAG", "path": "mcp-tools/rag" },
+              { "title": "YouTube", "path": "mcp-tools/youtube" },
+              { "title": "Content", "path": "mcp-tools/content" },
+              { "title": "CRM", "path": "mcp-tools/crm" },
+              { "title": "CSV", "path": "mcp-tools/csv" },
+              { "title": "Guide", "path": "mcp-tools/guide" }
+            ]
+          },
+          {
+            "group": "Python Tools",
+            "icon": "python",
+            "pages": [
+              { "title": "RAG Tools", "path": "python-tools/rag-tools" },
+              { "title": "YouTube Tools", "path": "python-tools/youtube-tools" },
+              { "title": "Content Tools", "path": "python-tools/content-tools" },
+              { "title": "CRM Tools", "path": "python-tools/crm-tools" },
+              { "title": "CSV Tools", "path": "python-tools/csv-tools" },
+              { "title": "Guide Tools", "path": "python-tools/guide-tools" }
+            ]
+          },
+          {
+            "group": "Frameworks",
+            "icon": "book",
+            "pages": [
+              { "title": "Brunson Daily Seinfeld", "path": "frameworks/brunson-daily-seinfeld" },
+              { "title": "Hormozi Value Equation", "path": "frameworks/hormozi-value-equation" },
+              { "title": "Channel Junkies Hooks", "path": "frameworks/channel-junkies-hooks" }
+            ]
+          },
+          {
+            "group": "Knowledge QA",
+            "icon": "magnifying-glass",
+            "pages": [
+              { "title": "Glossary", "path": "knowledge-qa/glossary" },
+              { "title": "Tools Catalog", "path": "knowledge-qa/tools-catalog" },
+              { "title": "Skill Quick Reference", "path": "knowledge-qa/skill-quick-reference" },
+              { "title": "MDX Gotchas", "path": "knowledge-qa/mdx-gotchas" }
+            ]
+          },
+          {
+            "group": "Help Center",
+            "icon": "circle-question",
+            "pages": [
+              { "title": "Setup Guide", "path": "help-center/setup-guide" },
+              { "title": "Troubleshooting", "path": "help-center/troubleshooting" },
+              { "title": "FAQ", "path": "help-center/faq" }
+            ]
+          },
+          {
+            "group": "Meta",
+            "icon": "clock-rotate-left",
+            "pages": [
+              { "title": "Changelog", "path": "changelog", "icon": "history" }
+            ]
           }
         ]
       }

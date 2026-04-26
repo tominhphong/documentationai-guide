@@ -1,0 +1,280 @@
+---
+title: "Claude Desktop App Setup"
+description: "Using the framework with Claude Desktop instead of terminal CLI."
+last_reviewed: 2026-04-26
+type: workflow
+audience: both
+use_case: ["setup-desktop-app", "compare-terminal-vs-desktop", "understand-two-modes"]
+keywords: [desktop-app, code-mode, chat-mode, visual-diff, MCP-configuration]
+---
+
+# Claude Desktop App Setup
+
+> Source: `DESKTOP-SETUP.md`
+
+The Claude Desktop app provides a visual interface for Claude Code. You can use the terminal CLI alone, the Desktop app alone, or both together. This guide covers Desktop setup and the differences between Chat Mode and Code Mode.
+
+<Note>
+You must complete [setup steps 1–6 from the Framework Setup Overview](/framework/setup-overview) before using the Desktop app. The Desktop app is a visual interface — the underlying tools still need to be installed on your machine.
+</Note>
+
+## Two Modes: Chat vs. Code
+
+The Claude Desktop app has two separate tabs, each with different capabilities.
+
+### Chat Mode (Default Tab)
+
+Standard Claude conversation with visual attachments.
+
+**Can do:**
+- Chat with Claude (ask questions, brainstorm)
+- Attach images, PDFs, documents via drag-and-drop
+- Use cloud integrations (Gmail, Google Calendar, Supabase, Vercel)
+- Use MCP tools configured in the Desktop app's own config
+
+**Cannot do:**
+- Read or write files on your computer
+- Run terminal commands or scripts
+- Use framework agents, skills, or rules
+- Search your local knowledge base
+- Ingest YouTube channels
+- Generate and save files (blogs, guides, emails)
+
+**Best for:** Quick questions, drafting without knowledge base context, working with cloud services.
+
+### Code Mode (Code Tab)
+
+Claude Code running inside the Desktop app with full file and terminal access.
+
+**Can do:**
+- Everything the terminal CLI does
+- Read and write all your files
+- Run Python scripts and terminal commands
+- Use all 9 agents, 3 skills, content rules
+- Search your knowledge base
+- Generate content and save to disk
+- Manage your CRM
+- Ingest YouTube channels
+- Run the persistent memory system
+
+**Cannot do:**
+- (Essentially nothing significant)
+
+**Best for:** All framework operations — content generation, knowledge base queries, CRM management, YouTube ingestion.
+
+## Setting Up Desktop App
+
+### 1. Download Claude Desktop
+
+Visit [claude.ai/download](https://claude.ai/download), install, and log in with your Anthropic account.
+
+### 2. Initial Framework Setup (Terminal)
+
+If you haven't done this yet, open Terminal and run:
+
+```bash
+cd ~/
+git clone <your-repo-url> "real-estate-ai"
+cd "real-estate-ai"
+bash scripts/setup.sh
+```
+
+This is a one-time step. All dependencies, MCP server, agents, and knowledge bases are configured.
+
+### 3. Connect MCP Servers for Code Mode
+
+MCP servers are configured in `~/.mcp.json` (same file as terminal CLI uses).
+
+If you already set this up during Phase 5 of the initial setup, you're done.
+
+If not, create or edit `~/.mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "real-estate-agent": {
+      "command": "node",
+      "args": ["/Users/YOURNAME/real-estate-ai/mcp_server/dist/index.js"]
+    },
+    "hostinger-mcp": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["hostinger-api-mcp@latest"],
+      "env": {
+        "API_TOKEN": "your-hostinger-api-token"
+      }
+    },
+    "supabase": {
+      "type": "http",
+      "url": "https://mcp.supabase.com/mcp?project_ref=your-project-ref"
+    }
+  }
+}
+```
+
+Replace `YOURNAME` with your macOS username. Fill in tokens only if you have them.
+
+### 4. Connect Cloud Integrations
+
+These work in both Chat Mode and Code Mode:
+
+1. Open Claude Desktop
+2. Go to **Settings > Integrations**
+3. Connect:
+   - **Gmail** — read and draft emails
+   - **Google Calendar** — check schedule, create events
+   - **Vercel** — deploy websites
+   - **Supabase** — query cloud database
+
+Each requires authorization. Pro/Max plans get additional integrations.
+
+### 5. Open Framework in Code Mode
+
+1. Open Claude Desktop
+2. Click the **Code** tab
+3. Use the folder picker to open `~/real-estate-ai`
+4. You now have full access to agents, knowledge bases, and tools
+
+## Using Code Mode Day-to-Day
+
+### Starting a Session
+
+1. Open Claude Desktop
+2. Click **Code** tab
+3. Folder should be `~/real-estate-ai` (it remembers your last folder)
+4. Start typing
+
+### What You Can Ask
+
+**Knowledge base queries:**
+```
+Search my knowledge base for flood insurance
+What have I covered about [neighborhood]?
+```
+
+**Content generation:**
+```
+Generate a blog post from this transcript: [paste]
+Write a 5-email welcome sequence
+Help me outline a video about [topic]
+```
+
+**CRM operations (if connected):**
+```
+Look up John Smith in my CRM
+Show me contacts tagged youtube-lead
+Draft a text to [contact]
+```
+
+**YouTube ingestion:**
+```
+Ingest my YouTube channel @MyHandle
+```
+
+Claude runs the script for you — no Terminal needed.
+
+**Market analysis:**
+```
+Generate a CMA for 123 Main Street, Tampa FL
+```
+
+### Visual Advantages Over Terminal
+
+Desktop Code Mode provides:
+
+- **File diffs** — Color-coded side-by-side comparison when Claude edits files
+- **Approve/reject** — Click to approve or reject individual changes
+- **File tree** — See your project structure in the sidebar
+- **Drag-and-drop** — Drop images, PDFs directly into the chat
+- **Copy-paste images** — Paste screenshots with Cmd+V
+
+## Chat Mode: When It's Useful
+
+Chat Mode can't access framework tools, but works well for:
+
+**Drafting without knowledge base:**
+```
+Write a social media caption about [topic]
+Draft a quick email to [person]
+Brainstorm video titles
+```
+
+**Cloud integrations:**
+```
+Check my Gmail for messages from [name]
+What's on my calendar this week?
+Search my Supabase for Tampa leads
+```
+
+**Document review:**
+Drag a PDF or screenshot into Chat Mode and ask Claude to summarize, analyze, or review it.
+
+## Desktop vs. Terminal: Quick Comparison
+
+| Feature | Desktop | Terminal |
+|---------|---------|----------|
+| Visual file diffs | Yes | No |
+| Approve changes by clicking | Yes | Type yes/no |
+| Drag-drop files | Yes | Type paths |
+| Dispatch from phone | Yes (Pro/Max) | No |
+| Less intimidating | Yes | Feels technical |
+| Speed for power users | Slight UI overhead | Slightly faster |
+| Multiple parallel sessions | One Code session | Easy to run multiple |
+| Scripting / pipe output | Limited | Full shell access |
+
+**For most real estate agents:** Desktop app is the better choice. Terminal is best if you're chaining commands or doing automation.
+
+## Troubleshooting Desktop Setup
+
+**MCP tools not showing up in Code Mode:**
+- Check that `~/.mcp.json` exists and has correct paths
+- Restart Claude Desktop after changing MCP config
+- Verify MCP server was built: `cd ~/real-estate-ai/mcp_server && npm run build`
+
+**Knowledge base queries return nothing:**
+- You must ingest content first: `Ingest my YouTube channel @MyHandle`
+- Or run manually: `bash scripts/ingest-channel.sh @MyHandle`
+
+**Cloud integrations not working:**
+- Go to **Settings > Integrations** and re-authorize
+- Some integrations require Pro or Max plan
+
+**"Command not found" errors in Code Mode:**
+- Dependencies (Python, Node, yt-dlp) must be installed first
+- Complete the setup steps from [Framework Setup Overview](/framework/setup-overview)
+
+## Dispatch: Tasks From Your Phone
+
+Available for Pro/Max subscribers. Send tasks from your phone; Claude opens a Code session on your Desktop.
+
+**How it works:**
+1. Open Claude app on phone
+2. Go to **Dispatch** tab
+3. Type: `Open a Code session in my real-estate-ai folder and generate a blog post from my latest YouTube video`
+4. Claude starts the task on your Desktop app
+5. Monitor progress on phone or Desktop
+
+**Good for:**
+- Kicking off long tasks while away from desk
+- "Generate a 5-email sequence about [topic]" while at a showing
+- "Pull conversation history for [client] before my meeting"
+
+**Limitations:**
+- Your Desktop app must be open and running
+- Approvals expire after 30 minutes (vs. until session ends in regular mode)
+- Can't drag-drop files from phone
+
+## Recommended Setup for Real Estate Agents
+
+1. **Use Terminal for one-time setup** (Steps 1–6 from [Framework Setup Overview](/framework/setup-overview))
+2. **Use Desktop app for daily work** (Code Mode)
+3. **Use Dispatch from phone** (Pro/Max) to kick off tasks remotely
+4. **Use Chat Mode** for quick drafts and cloud integrations
+
+You only need Terminal once. After that, Desktop app does everything.
+
+## Related Topics
+
+- [Framework Setup Overview](/framework/setup-overview)
+- [Architecture & Components](/framework/architecture)
+- [Framework Overview](/framework/overview)

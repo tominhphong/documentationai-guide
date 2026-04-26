@@ -1,0 +1,248 @@
+---
+title: "YouTube Video Pipeline Agent"
+description: "End-to-end video production: research, outline, script, and post-production repurposing"
+last_reviewed: 2026-04-26
+type: reference
+audience: ai-agent-primary
+use_case: ["video-production", "content-planning", "multi-phase-orchestration"]
+keywords: [video-pipeline, research, scripting, outline, post-production]
+---
+
+# YouTube Video Pipeline Agent
+
+Orchestrates the complete video production workflow from topic through research, outline, script, and post-production asset generation.
+
+> Source: `.claude/agents/youtube-video-pipeline.md`
+
+## Role
+
+The YouTube Video Pipeline agent manages four distinct phases: research competitive landscape, create filming outline, generate teleprompter script, and produce post-production deliverables (blog, emails, clips, metadata).
+
+## Tools
+
+- YouTube RAG database (competitor video queries)
+- Channel Junkies strategy database (title formulas, hooks, retention patterns)
+- Competitive landscape analyzer
+- Question matrix builder
+- Outline formatter with timing
+- Teleprompter script generator
+- Post-production asset bundler
+
+## Prompt Structure
+
+The agent operates via paraphrased framework covering:
+
+1. **Phase 1: Research**
+   - Query YouTube RAG for competitor videos (exact topic, subtopics, geographic)
+   - Query Channel Junkies for title/hook/retention strategies for this video type
+   - Build competitive landscape analysis (who covered it, angles, gaps)
+   - Create question matrix: top 10-15 relocator questions, competitor answers, {{AGENT_NAME}}'s angle
+   - Identify differentiation opportunities (unique local knowledge)
+
+2. **Phase 2: Outline**
+   - Target duration and keyword strategy
+   - HOOK section (0:00-0:30): Opening line, promise, filter, curiosity, credibility
+   - MAP/VISUAL segment (0:30-1:30): B-roll, geographic context, transition
+   - 3-5 CONTENT sections with: key point, data, CON, PRO flip, personal insight, visual tag
+   - MID-VIDEO CTA (soft value offer)
+   - CLOSE (summary, direct CTA, subscribe prompt, end screen)
+   - Section timing and word count validation
+
+3. **Phase 3: Script**
+   - Hybrid format: verbatim lines (>> <<) + improvisation guides
+   - Pacing notes for each section (high energy, conversational, moderate, slow deliberate)
+   - Delivery cues: [PAUSE], [EMPHASIS], [LEAN IN], [LOOK AT CAMERA], [GESTURE]
+   - Content markers: [AD-LIB ZONE], [VISUAL CUE], [DATA], [TRANSITION]
+   - Reading speed: 140-160 wpm average
+   - Total word count matches target duration
+
+4. **Phase 4: Post-Production**
+   - Nurture Email Sequence (3 emails, Days 0/2/5, Daily Seinfeld framework)
+   - Social Media Clips (3-5 clips, 30-90 sec each, platform-native)
+   - WordPress Blog Post (1500-2500 words, SEO-optimized, embedded video)
+   - YouTube Metadata (title, description with timestamps, tags, thumbnail suggestion)
+
+5. **Non-Negotiables**
+   - Hook in first 10 seconds (pattern interrupt or bold claim)
+   - Map/visual segment present
+   - At least 2 CTAs (mid-video soft + end direct)
+   - Booking link included
+   - Credibility line delivered
+   - 3+ specific data points per section
+   - CON-to-PRO structure in 2+ sections
+   - No generic realtor language
+   - Fair Housing compliant
+   - Subscribe prompt + next video tease in close
+
+## Inputs
+
+```json
+{
+  "video_topic": "5 Costly Mistakes When Moving to Austin",
+  "target_duration_minutes": 15,
+  "agent_name": "Sarah Mitchell",
+  "agent_credential_line": "Real estate agent with 10 years experience, 500+ relocators served",
+  "target_keywords": ["austin relocation", "moving mistakes"],
+  "phase_requested": "research|outline|script|post-production",
+  "use_channel_junkies": true,
+  "include_post_production": true
+}
+```
+
+## Outputs
+
+### Phase 1: Research Output
+```
+## Research Brief: [TOPIC]
+
+### Competitive Landscape
+- [Channel]: [Video Title] ([Views]) — [Key angle]
+...
+
+### Channel Junkies Strategy Notes
+- Title formula: ...
+- Hook pattern: ...
+- Retention strategy: ...
+
+### Question Matrix
+| # | Question | Competitor Coverage | {{AGENT_NAME}}'s Angle | Differentiation |
+|---|----------|-------------------|----------------------|-----------------|
+
+### Recommended Angle
+[1-2 paragraph recommendation]
+```
+
+### Phase 2: Outline Output
+```
+# VIDEO OUTLINE: [Title]
+## Target Length: [X:XX - X:XX]
+## Search Keywords: [primary], [secondary], [tertiary]
+
+### HOOK (0:00 - 0:30)
+- Opening line: [Exact line to deliver]
+- Promise: [What viewer gets]
+- Filter: [Who this is for]
+- Curiosity: [Coming later tease]
+- Credibility: [Credential line]
+
+### SECTION [1-5]
+- Key point: [Main takeaway]
+- Supporting data: [Specific numbers]
+- CON: [Negative to acknowledge]
+- PRO flip: [How con becomes advantage]
+- Personal insight: [Agent's experience]
+- Visual tag: [B-roll suggestion]
+```
+
+### Phase 3: Script Output
+```
+========================================
+TELEPROMPTER SCRIPT
+Title: [Video Title]
+Target Duration: [X:XX]
+Total Word Count: [XXXX words]
+========================================
+
+[SECTION: HOOK]
+[TIME: 0:00 - 0:30]
+[PACE: High energy / direct to camera]
+
+>> [Verbatim line to deliver] <<
+
+[PAUSE: 1 beat]
+
+[TRANSITION: tone shift description]
+```
+
+### Phase 4: Post-Production Output
+
+Bundled deliverables:
+- **Nurture Email Sequence** (3 emails, Days 0, 2, 5)
+- **Social Media Clips** (3-5 clip specs with timestamps, hooks, captions)
+- **WordPress Blog Post** (Full markdown with frontmatter)
+- **YouTube Metadata** (Title, description with timestamps, tags, thumbnail suggestion)
+
+## Example Invocation
+
+```bash
+# Research phase
+ck run agent youtube-video-pipeline \
+  --topic "Why Austin's Tech Industry Affects Real Estate" \
+  --phase research \
+  --agent "Sarah Mitchell"
+
+# Outline phase (after research approval)
+ck run agent youtube-video-pipeline \
+  --topic "Why Austin's Tech Industry Affects Real Estate" \
+  --phase outline \
+  --target-duration "13:00" \
+  --keywords "austin tech,real estate market"
+
+# Script from outline
+ck run agent youtube-video-pipeline \
+  --outline-file "video-outline.md" \
+  --phase script
+
+# Full post-production from transcript
+ck run agent youtube-video-pipeline \
+  --transcript-file "recorded-transcript.txt" \
+  --phase post-production
+```
+
+## Phase Decision Tree
+
+```
+User provides:
+  ├─ Raw topic → Start at Phase 1 (Research)
+  ├─ Completed outline → Start at Phase 3 (Script)
+  ├─ Recorded transcript → Start at Phase 4 (Post-Production)
+  └─ Unsure → Ask clarifying questions
+```
+
+## Video Specifications
+
+| Element | Requirement |
+|---------|-------------|
+| Target duration | 10-16 minutes |
+| Reading speed | 140-160 wpm |
+| Hook timing | First 10 seconds |
+| First data point | By 1:30 |
+| Mid-video CTA | 40-50% through |
+| Visual variety | Change every 20-30 seconds |
+| CTAs | Minimum 2 (soft + direct) |
+
+## Quality Checklist
+
+- [ ] Hook in first 10 seconds (pattern interrupt or bold claim)
+- [ ] Map/visual segment exists
+- [ ] At least 2 CTAs (mid-video + end)
+- [ ] Booking link included
+- [ ] Credibility line delivered
+- [ ] 3+ specific data points per section
+- [ ] CON-to-PRO structure in 2+ sections
+- [ ] No generic realtor language
+- [ ] Fair Housing compliant
+- [ ] Close includes subscribe prompt + next video tease
+- [ ] Total content matches target duration at 150 wpm
+
+## Related Workflows
+
+- [Video-to-5-Assets Pipeline](/workflows/1-video-5-assets) — Simplified post-production only
+- [Content Multiplier Workflow](/workflows/content-multiplier) — Repurposing output assets
+
+## Best Practices
+
+- **Timing:** Total outline length should match target duration at 140-160 wpm
+- **Data points:** Every section needs at least one specific number, date, or dollar amount
+- **CON-to-PRO:** Every major point should have a counterargument then flip it
+- **Visual pacing:** Plan B-roll changes every 20-30 seconds to maintain retention
+- **Credibility early:** Introduce credential line in first 60 seconds
+- **Testing:** Run outline by agent before scripting for approval
+- **Channel Junkies:** Always reference methodology when available for this topic
+
+## Integration with Other Agents
+
+- Produces output used by [YouTube-to-Blog Agent](/agent-instructions/youtube-to-blog) for blog conversion
+- Uses voice profile from [Email Writer Agent](/agent-instructions/email-writer) for email copy
+- Post-production uses [Content Repurposer Agent](/agent-instructions/content-repurposer) for social clips
+- Generates assets managed by [CRM Agent](/agent-instructions/crm-agent) for nurture automation
