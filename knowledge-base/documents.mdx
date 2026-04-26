@@ -1,0 +1,78 @@
+---
+title: "Documents Drop-Zone"
+description: "User-supplied document folder ingested into the RAG knowledge base — purpose, formats, and ingestion workflow."
+last_reviewed: 2026-04-26
+type: reference
+audience: both
+use_case: ["add-custom-knowledge-to-rag", "understand-document-ingestion"]
+keywords: [knowledge-base, documents, RAG, ingestion, drop-zone, ChromaDB]
+---
+
+# Documents Drop-Zone
+
+> **Source:** `knowledge_bases/documents/` (empty in upstream — only `.gitkeep`)
+
+The `documents/` folder is a **user drop-zone** for adding custom reference material that should be searchable through the RAG pipeline. It ships empty in the upstream repo because each agent's reference material is local to their market and use case.
+
+## Purpose
+
+When the framework runs `bash scripts/build-knowledge-base.sh`, the script scans this folder and ingests every file into the ChromaDB vector store. After ingestion, agents can query that material via the RAG MCP tool group (`/mcp-tools/rag`) using natural-language search.
+
+Typical contents agents add here:
+
+- Local market reports (CMA aggregates, MLS exports, pricing studies)
+- Neighborhood guides (school zoning, HOA rules, flood maps)
+- Closing-process checklists and contract templates relevant to the agent's state
+- Personal style references (sample emails, prior video transcripts, brand voice notes)
+- Regulatory updates (state-specific TREC bulletins, Fair Housing memos)
+
+## Supported Formats
+
+The ingestion script handles common text formats. Convert binary documents (PDF, DOCX) to plain text or markdown before dropping them in.
+
+| Format | Extension | Notes |
+|---|---|---|
+| Plain text | `.txt` | Pre-formatted output from PDF extractors works fine |
+| Markdown | `.md` | Headings preserved as section anchors |
+| JSON | `.json` | Structured data — listings, contact lists, schemas |
+| YAML | `.yaml` / `.yml` | Config-like reference data |
+
+PDF and DOCX should be pre-processed (e.g., `pdftotext file.pdf > file.txt`) before placement.
+
+## Ingestion Workflow
+
+<Steps>
+  <Step title="Drop files into folder">
+    Place documents at `knowledge_bases/documents/` in the local repo clone. Use any naming convention; the ingester scans recursively.
+  </Step>
+  <Step title="Run the build script">
+    Execute `bash scripts/build-knowledge-base.sh` from the repo root. The script reads `config/channels.yaml` for any YouTube ingestion AND walks `knowledge_bases/documents/` for local files.
+  </Step>
+  <Step title="Verify ingestion">
+    Check ChromaDB index size with the RAG tools (see `/python-tools/rag-tools`). New chunks should appear with the source filename in metadata.
+  </Step>
+  <Step title="Query via agents">
+    Any agent that uses RAG (email-writer, customer-response, relocation-guide-generator) can now retrieve passages from these documents in addition to YouTube transcripts and books.
+  </Step>
+</Steps>
+
+## File Naming Convention
+
+Use descriptive kebab-case filenames so retrieval metadata is human-readable:
+
+- `austin-q1-2026-market-report.txt`
+- `lakeway-school-district-overview.md`
+- `trec-fair-housing-update-2026.txt`
+
+Avoid spaces and timestamps in filenames; prefer dates inside the file content.
+
+## Why Empty in Upstream
+
+The upstream framework ships `documents/` empty because the contents are inherently agent-specific. Cloning the repo gives you the ingestion pipeline; you populate the folder with your own market intelligence over time.
+
+## Related
+
+- [Build Knowledge Base Script](/runtime-assets/setup-scripts) — `scripts/build-knowledge-base.sh` walkthrough
+- [MCP RAG Tools](/mcp-tools/rag) — query interface for ingested documents
+- [Python RAG Tools](/python-tools/rag-tools) — backing implementation
+- [Books — $100M Offers](/books/hormozi-100m-offers) — verbatim source material for marketing frameworks (separate ingestion path)

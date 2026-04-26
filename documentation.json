@@ -120,6 +120,31 @@
             ]
           },
           {
+            "group": "Knowledge Base",
+            "icon": "database",
+            "pages": [
+              { "title": "Documents Drop-Zone", "path": "knowledge-base/documents" }
+            ]
+          },
+          {
+            "group": "Books",
+            "icon": "books",
+            "pages": [
+              { "title": "$100M Offers — Hormozi", "path": "books/hormozi-100m-offers" },
+              { "title": "$100M Leads — Hormozi", "path": "books/hormozi-100m-leads" },
+              { "title": "$100M Pricing Playbook — Hormozi", "path": "books/hormozi-pricing-playbook" },
+              { "title": "Ad Framework #3 (Why You Will Never) — Hormozi", "path": "books/hormozi-ad-framework" },
+              { "title": "Why You Will Never (Outline) — Hormozi", "path": "books/hormozi-why-you-will-never" },
+              { "title": "Ad Framework #2 New vs Old (Full) — Hormozi", "path": "books/hormozi-new-vs-old-framework" },
+              { "title": "New vs Old (Direct Mail) — Hormozi adapt", "path": "books/hormozi-new-vs-old-direct-mail" },
+              { "title": "New vs Old (Short) — Hormozi adapt", "path": "books/hormozi-new-vs-old-short" },
+              { "title": "DotCom Secrets — Brunson", "path": "books/brunson-dotcom-secrets" },
+              { "title": "Traffic Secrets — Brunson", "path": "books/brunson-traffic-secrets" },
+              { "title": "Backyard Breakthrough Blueprint — Brunson adapt", "path": "books/brunson-backyard-blueprint" },
+              { "title": "Lead Magnet & Squeeze Page — Brunson adapt", "path": "books/brunson-lead-magnet-squeeze" }
+            ]
+          },
+          {
             "group": "Help Center",
             "icon": "circle-question",
             "pages": [
