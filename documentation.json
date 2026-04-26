@@ -110,13 +110,13 @@
             ]
           },
           {
-            "group": "Assets & Templates",
+            "group": "Runtime Assets",
             "icon": "folder-open",
             "pages": [
-              { "title": "Agent Profile Config", "path": "assets/agent-profile-config" },
-              { "title": "Relocation Guide Template", "path": "assets/relocation-guide-template" },
-              { "title": "Email Sequence Templates", "path": "assets/email-sequence-templates" },
-              { "title": "Setup Scripts", "path": "assets/setup-scripts" }
+              { "title": "Agent Profile Config", "path": "runtime-assets/agent-profile-config" },
+              { "title": "Relocation Guide Template", "path": "runtime-assets/relocation-guide-template" },
+              { "title": "Email Sequence Templates", "path": "runtime-assets/email-sequence-templates" },
+              { "title": "Setup Scripts", "path": "runtime-assets/setup-scripts" }
             ]
           },
           {
