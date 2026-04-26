@@ -44,7 +44,7 @@ MDX v3 parse failures are all-or-nothing: a single syntax error in one file prev
 
 ## 2. JSX Number Collision
 
-**Error Symptom:** "Unexpected character '<'" or "Unexpected number in JSX"
+**Error Symptom:** `Unexpected character '<'` or `Unexpected number in JSX`
 
 **What Happens:** Content like `<20%` or `<50` looks like a JSX tag opening to the parser.
 
@@ -334,7 +334,7 @@ Before pushing any MDX file:
 | Error Message | Likely Cause | Quick Fix |
 |---------------|--------------|-----------|
 | "Unexpected character !" | HTML comment | Replace `<!-- -->` with `{/* */}` |
-| "Unexpected character <" | Number like `<20` | Escape as `&lt;20` or rephrase |
+| `Unexpected character <` | Number like `<20` | Escape as `&lt;20` or rephrase |
 | "Tag mismatch" | Unclosed JSX | Add matching `</ComponentName>` |
 | "Missing required field" | No frontmatter | Add YAML block with title + description |
 | "Unexpected character \|" | Pipe in table JSX | Remove pipe or use `/` instead |
