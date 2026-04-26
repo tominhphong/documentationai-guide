@@ -110,6 +110,16 @@
             ]
           },
           {
+            "group": "Assets & Templates",
+            "icon": "folder-open",
+            "pages": [
+              { "title": "Agent Profile Config", "path": "assets/agent-profile-config" },
+              { "title": "Relocation Guide Template", "path": "assets/relocation-guide-template" },
+              { "title": "Email Sequence Templates", "path": "assets/email-sequence-templates" },
+              { "title": "Setup Scripts", "path": "assets/setup-scripts" }
+            ]
+          },
+          {
             "group": "Help Center",
             "icon": "circle-question",
             "pages": [

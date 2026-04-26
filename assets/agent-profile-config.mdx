@@ -1,0 +1,255 @@
+---
+title: "Agent Profile Config"
+description: "Runtime configuration schema for per-agent template variable substitution."
+last_reviewed: 2026-04-26
+type: reference
+audience: ai-agent-primary
+use_case: ["configure-agent-profile", "setup-framework", "customize-agent-identity"]
+keywords: [agent-profile, config-schema, template-variables, yaml]
+---
+
+# Agent Profile Config
+
+> Source: `examples/sample_agent_profile.yaml`
+
+The agent profile is a YAML configuration file that defines per-agent runtime identity, channels, and content guidelines. Template variables (like `{{AGENT_NAME}}`, `{{AGENT_CITY}}`) throughout the framework are substituted with values from this config during agent initialization.
+
+## Purpose
+
+This configuration enables the framework to personalize:
+- AI agent prompts and responses per agent
+- Lead magnet templates (relocation guides, email sequences)
+- MCP server outputs and content generation
+- RAG retrieval context (which channels, knowledge bases to index)
+
+Load path: `~/.real_estate_ai/agent_profile.yaml` (default) or specified in `/framework/setup-overview`.
+
+## Schema
+
+### `agent`
+Top-level agent identity block.
+
+| Field | Type | Example | Purpose |
+|-------|------|---------|---------|
+| `name` | string | `"Jeremy Rickard"` | Agent's full name for branding and attribution |
+| `phone` | string | `"(813) 298-9325"` | Contact number in CTAs and resources |
+| `email` | string | `"jeremy@excellecorerealestate.com"` | Business email for lead contact |
+| `website` | string | `"https://www.excellecorerealestate.com"` | Main business website |
+| `brokerage` | string | `"Excellecore Real Estate"` | Firm name for credibility |
+| `city` | string | `"Wesley Chapel"` | Primary market city |
+| `state` | string | `"FL"` | State abbreviation |
+| `youtube_handle` | string | `"@excellecorerealestate"` | YouTube channel handle (with `@`) |
+| `booking_link` | string | `"https://...com/book"` | Calendar scheduling URL for CTAs |
+| `credential_line` | string | `"Over a decade of experience..."` | Short professional bio (1-2 sentences) |
+| `team_description` | string | `"solo agent"` | Team structure for positioning |
+
+### `channels`
+YouTube and content sources to ingest and monitor.
+
+```yaml
+channels:
+  own:
+    - handle: "@excellecorerealestate"
+      name: "Excellecore Real Estate"
+      db_name: "youtube_excellecore"
+  
+  competitors:
+    - handle: "@TampaFloridaLiving"
+      name: "Tampa Florida Living"
+      db_name: "youtube_tampa_florida_living"
+  
+  strategy:
+    - handle: "@ChannelJunkies"
+      name: "Channel Junkies"
+      db_name: "youtube_channel_junkies"
+```
+
+**Sections:**
+- **`own`** – Agent's primary channels (will build RAG knowledge bases from these)
+- **`competitors`** – Channels to monitor for market insights and competitive analysis
+- **`strategy`** – Educational or brand model channels to study (e.g., high-performer frameworks)
+
+**Per-channel fields:**
+- `handle` – YouTube handle (with `@` prefix)
+- `name` – Display name for reference
+- `db_name` – ChromaDB collection name (derived from handle, lowercased, hyphens→underscores)
+
+Cross-reference: `/workflows/lead-magnet-generation` describes how these channels populate relocation guides.
+
+### `paths`
+Local filesystem directories for knowledge bases and manifests.
+
+```yaml
+paths:
+  knowledge_bases: "./knowledge_bases/vectors"
+  transcripts: "./knowledge_bases/transcripts"
+  manifest: "~/.real_estate_ai/manifest.json"
+```
+
+| Field | Purpose |
+|-------|---------|
+| `knowledge_bases` | ChromaDB vector store directory (relative to framework root) |
+| `transcripts` | Downloaded YouTube transcript staging area |
+| `manifest` | JSON file tracking ingested datasets and metadata |
+
+### `content`
+Content guidelines and brand voice parameters.
+
+```yaml
+content:
+  markets:
+    - "Wesley Chapel"
+    - "Land O' Lakes"
+    - "Lutz"
+    - "Tampa"
+  
+  topics:
+    - "relocation"
+    - "first-time buyers"
+    - "market analysis"
+    - "neighborhoods"
+    - "house hacking"
+    - "seller tips"
+  
+  voice_markers:
+    - "let me be transparent"
+    - "here's the reality"
+    - "from my experience"
+  
+  never_say:
+    - "dream home"
+    - "perfect home"
+```
+
+**Subsections:**
+
+- **`markets`** – Geographic markets the agent covers (used in RAG context and content generation)
+- **`topics`** – Content pillars for email, guides, and video analysis
+- **`voice_markers`** – Signature phrases that define the agent's conversational tone (injected into prompts via `/core-rules/content-style`)
+- **`never_say`** – Brand voice prohibitions (red-flag terms to avoid in AI responses)
+
+These values flow into AI agent system prompts to maintain consistent tone and positioning.
+
+## Template Variable Substitution
+
+During framework initialization, all instances of:
+- `{{AGENT_NAME}}` → `agent.name`
+- `{{AGENT_CITY}}` → `agent.city`
+- `{{AGENT_STATE}}` → `agent.state`
+- `{{AGENT_PHONE}}` → `agent.phone`
+- `{{AGENT_EMAIL}}` → `agent.email`
+- `{{AGENT_WEBSITE}}` → `agent.website`
+- `{{AGENT_BROKERAGE}}` → `agent.brokerage`
+
+are replaced in:
+- Email sequence templates (`templates/email_sequences/*.md`)
+- Relocation guide template (`templates/relocation_guide_template.json`)
+- MCP agent system prompts
+
+Cross-reference: `/core-rules/content-style` for how voice markers and tone are enforced.
+
+## Example: Minimal Profile
+
+```yaml
+agent:
+  name: "Jane Smith"
+  phone: "(555) 100-0001"
+  email: "jane@example.com"
+  website: "https://janesmith.real"
+  brokerage: "Main Street Realty"
+  city: "Austin"
+  state: "TX"
+  youtube_handle: "@janesmith"
+  booking_link: "https://calendly.com/janesmith"
+  credential_line: "5 years helping Austin buyers navigate the market."
+  team_description: "solo agent"
+
+channels:
+  own:
+    - handle: "@janesmith"
+      name: "Jane Smith Real Estate"
+      db_name: "youtube_janesmith"
+
+paths:
+  knowledge_bases: "./knowledge_bases/vectors"
+  transcripts: "./knowledge_bases/transcripts"
+  manifest: "~/.real_estate_ai/manifest.json"
+
+content:
+  markets: ["Austin", "Round Rock"]
+  topics: ["relocation", "first-time buyers", "market trends"]
+  voice_markers: ["from my experience", "here's what I've seen"]
+  never_say: ["dream home"]
+```
+
+## Example: Filled-Out Profile (Multi-Channel)
+
+```yaml
+agent:
+  name: "Jeremy Rickard"
+  phone: "(813) 298-9325"
+  email: "jeremy@excellecorerealestate.com"
+  website: "https://www.excellecorerealestate.com"
+  brokerage: "Excellecore Real Estate"
+  city: "Wesley Chapel"
+  state: "FL"
+  youtube_handle: "@excellecorerealestate"
+  booking_link: "https://www.excellecorerealestate.com/book"
+  credential_line: "Over a decade of experience helping buyers find their home in Tampa Bay."
+  team_description: "solo agent"
+
+channels:
+  own:
+    - handle: "@excellecorerealestate"
+      name: "Excellecore Real Estate"
+      db_name: "youtube_excellecore"
+
+  competitors:
+    - handle: "@TampaFloridaLiving"
+      name: "Tampa Florida Living"
+      db_name: "youtube_tampa_florida_living"
+    - handle: "@trulivingtampa"
+      name: "Tru Living Tampa"
+      db_name: "youtube_tru_tampa_living"
+
+  strategy:
+    - handle: "@ChannelJunkies"
+      name: "Channel Junkies"
+      db_name: "youtube_channel_junkies"
+
+paths:
+  knowledge_bases: "./knowledge_bases/vectors"
+  transcripts: "./knowledge_bases/transcripts"
+  manifest: "~/.real_estate_ai/manifest.json"
+
+content:
+  markets:
+    - "Wesley Chapel"
+    - "Land O' Lakes"
+    - "Lutz"
+    - "Tampa"
+
+  topics:
+    - "relocation"
+    - "first-time buyers"
+    - "market analysis"
+    - "neighborhoods"
+    - "house hacking"
+    - "seller tips"
+
+  voice_markers:
+    - "let me be transparent"
+    - "here's the reality"
+    - "from my experience"
+
+  never_say:
+    - "dream home"
+    - "perfect home"
+```
+
+## Related
+
+- [Setup Overview](/framework/setup-overview) – Where this config is loaded and initialized
+- [Relocation Guide Template](/assets/relocation-guide-template) – Uses `{{AGENT_*}}` variables from this config
+- [Email Sequence Templates](/assets/email-sequence-templates) – Template substitution during email generation
+- [Content Style Guide](/core-rules/content-style) – How `voice_markers` and `never_say` enforce tone

@@ -1,0 +1,442 @@
+---
+title: "Relocation Guide Template"
+description: "40-page PDF template schema for city-specific relocation guide generation."
+last_reviewed: 2026-04-26
+type: reference
+audience: ai-agent-primary
+use_case: ["generate-lead-magnet", "template-structure", "understand-guide-schema"]
+keywords: [relocation-guide, template, json, lead-magnet, pdf-structure]
+---
+
+# Relocation Guide Template
+
+> Source: `templates/relocation_guide_template.json`
+
+The relocation guide template defines the structural schema for a 40-page PDF lead magnet. The relocation-guide-generator agent populates each section with city-specific content extracted from RAG data (agent YouTube videos and transcripts). Template variables (`{{AGENT_NAME}}`, `{{CITY}}`, etc.) are substituted from the agent profile.
+
+## Purpose
+
+This template ensures consistent structure across all agent relocation guides while allowing dynamic content population. The schema maps:
+- Page ranges (e.g., "neighborhoods" spans pages 11–16)
+- Layout type for each section (e.g., `neighborhood_deep_dive`)
+- Data fields to extract and fill from RAG
+- Branding variables (colors, agent contact info)
+
+The generator reads this schema, queries RAG for relevant content, and produces a PDF with consistent design and information hierarchy.
+
+Cross-reference: `/agent-instructions/relocation-guide-generator` describes the agent workflow that fills this template.
+
+## Top-Level Structure
+
+```json
+{
+  "metadata": {...},
+  "branding": {...},
+  "pages": {...}
+}
+```
+
+### Metadata
+
+```json
+"metadata": {
+  "version": "1.0",
+  "page_count": 40,
+  "description": "Relocation guide template for real estate agents. Content populated from YouTube RAG data."
+}
+```
+
+| Field | Type | Purpose |
+|-------|------|---------|
+| `version` | string | Schema version (for compatibility tracking) |
+| `page_count` | integer | Expected total pages (40) |
+| `description` | string | Human-readable guide purpose |
+
+### Branding
+
+```json
+"branding": {
+  "agent_name": "{{AGENT_NAME}}",
+  "brokerage": "{{AGENT_BROKERAGE}}",
+  "phone": "{{AGENT_PHONE}}",
+  "email": "{{AGENT_EMAIL}}",
+  "website": "{{AGENT_WEBSITE}}",
+  "primary_color": "#003366",
+  "accent_color": "#C9913B",
+  "background_color": "#F5F1E8"
+}
+```
+
+All `{{VAR}}` placeholders are replaced from `/assets/agent-profile-config` during generation. Color codes define the PDF visual theme.
+
+## Pages Map
+
+The `pages` object contains a key per section (e.g., `"cover"`, `"neighborhoods"`, `"resources"`). Each section specifies:
+- **`page`** or **`pages`** – Page number(s) or range
+- **`layout`** – Visual layout template (CSS/design class)
+- **`content`** – Data fields to populate
+
+### Cover (Page 1)
+
+```json
+"cover": {
+  "page": 1,
+  "layout": "cover",
+  "content": {
+    "title": "Your Complete Guide to Relocating to {{CITY}}",
+    "subtitle": "Everything you need to know before making the move",
+    "agent_line": "By {{AGENT_NAME}} | {{AGENT_BROKERAGE}}"
+  }
+}
+```
+
+**Purpose:** Title page. Variables substituted at generation time.
+
+### Table of Contents (Page 2)
+
+```json
+"table_of_contents": {
+  "page": 2,
+  "layout": "toc",
+  "content": {
+    "note": "Auto-generated from sections below"
+  }
+}
+```
+
+**Purpose:** Auto-populated TOC. No manual content needed.
+
+### About Author (Pages 3–4)
+
+```json
+"about_author": {
+  "pages": [3, 4],
+  "layout": "two_column_with_photo",
+  "content": {
+    "personal_journey": "[DATA_NEEDED] - Extract from RAG: agent's personal story, why they became a realtor",
+    "credentials": "[DATA_NEEDED] - Years in RE, certifications, client count",
+    "why_this_area": "[DATA_NEEDED] - Personal connection to the area",
+    "relocation_story": "[DATA_NEEDED] - If applicable, agent's own relocation story"
+  }
+}
+```
+
+**Purpose:** Establish trust and credibility. RAG generator extracts from agent's video content.
+
+### What You'll Learn (Pages 5–6)
+
+```json
+"what_youll_learn": {
+  "pages": [5, 6],
+  "layout": "overview_grid",
+  "content": {
+    "sections": [
+      "Area Overview & Lifestyle",
+      "Top Neighborhoods",
+      "New Construction Options",
+      "Real Estate Process",
+      "Cost of Living & Budget",
+      "Things to Do",
+      "Insider Tips",
+      "Working With Your Agent"
+    ]
+  }
+}
+```
+
+**Purpose:** Chapter roadmap. Static list of guide contents.
+
+### Area Overviews (Pages 7–10)
+
+```json
+"area_overviews": {
+  "pages": [7, 8, 9, 10],
+  "layout": "city_profile",
+  "content": {
+    "cities": [
+      {
+        "name": "[CITY_1]",
+        "description": "[DATA_NEEDED]",
+        "lifestyle": "[DATA_NEEDED]",
+        "attractions": "[DATA_NEEDED]",
+        "vibe": "[DATA_NEEDED]",
+        "development_stage": "[DATA_NEEDED]",
+        "pros": "[DATA_NEEDED]",
+        "cons": "[DATA_NEEDED]",
+        "commute_times": "[DATA_NEEDED]"
+      },
+      {
+        "name": "[CITY_2]",
+        ...similar structure...
+      }
+    ]
+  }
+}
+```
+
+**Purpose:** Multi-city comparison. RAG generator populates each city's profile from agent video content.
+
+**Fields per city:**
+- `name` – City name
+- `description` – Overview and character
+- `lifestyle` – Living feel and culture
+- `attractions` – Key points of interest
+- `vibe` – Tone/personality (e.g., "suburban", "urban", "family-friendly")
+- `development_stage` – Maturity (e.g., "rapidly growing", "established", "emerging")
+- `pros` – Positive attributes
+- `cons` – Realistic drawbacks
+- `commute_times` – Travel times to key hubs (in minutes)
+
+### Neighborhoods (Pages 11–16)
+
+```json
+"neighborhoods": {
+  "pages": [11, 12, 13, 14, 15, 16],
+  "layout": "neighborhood_deep_dive",
+  "content": {
+    "neighborhoods": [
+      {
+        "name": "[NEIGHBORHOOD_1]",
+        "city": "[CITY]",
+        "vibe": "[DATA_NEEDED]",
+        "housing_types": "[DATA_NEEDED]",
+        "price_range": "[DATA_NEEDED]",
+        "schools": "[DATA_NEEDED]",
+        "location_access": "[DATA_NEEDED]",
+        "who_lives_here": "[DATA_NEEDED]",
+        "agent_take": "[DATA_NEEDED]"
+      }
+    ]
+  }
+}
+```
+
+**Purpose:** Detailed neighborhood profiles (typically 2–3 neighborhoods × 2 pages each).
+
+**Fields per neighborhood:**
+- `name` – Neighborhood or district name
+- `city` – Parent city
+- `vibe` – Character and feel
+- `housing_types` – Mix (e.g., "single-family, townhomes, condos")
+- `price_range` – Median home prices or price bracket
+- `schools` – School options and rankings
+- `location_access` – Distance to shopping, highways, downtown
+- `who_lives_here` – Demographics and lifestyle fit
+- `agent_take` – Agent's personal opinion and insider perspective
+
+### New Construction (Pages 17–20)
+
+```json
+"new_construction": {
+  "pages": [17, 18, 19, 20],
+  "layout": "builder_profiles",
+  "content": {
+    "overview": "[DATA_NEEDED]",
+    "builders": "[DATA_NEEDED]",
+    "price_ranges": "[DATA_NEEDED]",
+    "incentives": "[DATA_NEEDED]",
+    "agent_advice": "[DATA_NEEDED]"
+  }
+}
+```
+
+**Purpose:** Active builders and new development options.
+
+**Fields:**
+- `overview` – Market state of new construction
+- `builders` – List of active builders with brief profiles
+- `price_ranges` – Entry-level to luxury price points
+- `incentives` – Current builder incentives or promotions
+- `agent_advice` – Agent negotiation tips and market insights
+
+### Real Estate Navigation (Pages 21–23)
+
+```json
+"real_estate_navigation": {
+  "pages": [21, 22, 23],
+  "layout": "process_guide",
+  "content": {
+    "contract_process": "[DATA_NEEDED]",
+    "closing_timeline": "[DATA_NEEDED]",
+    "insurance": "[DATA_NEEDED]",
+    "hoa_cdd": "[DATA_NEEDED]",
+    "state_specific_notes": "[DATA_NEEDED]"
+  }
+}
+```
+
+**Purpose:** Procedural guidance for the buying/selling process in this state/market.
+
+**Fields:**
+- `contract_process` – Steps from offer to acceptance
+- `closing_timeline` – Typical duration and milestones
+- `insurance` – Homeowners and flood insurance notes
+- `hoa_cdd` – Homeowners association and community district info
+- `state_specific_notes` – State-unique requirements (e.g., disclosures in Florida)
+
+### Home Maintenance (Pages 24–25)
+
+```json
+"home_maintenance": {
+  "pages": [24, 25],
+  "layout": "tips_grid",
+  "content": {
+    "hvac": "[DATA_NEEDED]",
+    "pool": "[DATA_NEEDED]",
+    "storm_prep": "[DATA_NEEDED]",
+    "pest_control": "[DATA_NEEDED]",
+    "seasonal_tips": "[DATA_NEEDED]"
+  }
+}
+```
+
+**Purpose:** Practical homeowner tips for climate/region.
+
+### Budget Planning (Pages 26–27)
+
+```json
+"budget_planning": {
+  "pages": [26, 27],
+  "layout": "cost_breakdown",
+  "content": {
+    "cost_of_living": "[DATA_NEEDED]",
+    "hidden_costs": "[DATA_NEEDED]",
+    "savings_tips": "[DATA_NEEDED]",
+    "utilities": "[DATA_NEEDED]",
+    "tax_benefits": "[DATA_NEEDED]"
+  }
+}
+```
+
+**Purpose:** Financial planning and cost expectations.
+
+### Things to Do (Pages 28–31)
+
+```json
+"things_to_do": {
+  "pages": [28, 29, 30, 31],
+  "layout": "lifestyle_showcase",
+  "content": {
+    "restaurants": "[DATA_NEEDED]",
+    "outdoor_activities": "[DATA_NEEDED]",
+    "events": "[DATA_NEEDED]",
+    "family_activities": "[DATA_NEEDED]",
+    "nightlife": "[DATA_NEEDED]"
+  }
+}
+```
+
+**Purpose:** Lifestyle and recreation guide.
+
+### Insider Tips (Pages 32–33)
+
+```json
+"insider_tips": {
+  "pages": [32, 33],
+  "layout": "tips_list",
+  "content": {
+    "locals_only": "[DATA_NEEDED]",
+    "timing_tips": "[DATA_NEEDED]",
+    "misconceptions": "[DATA_NEEDED]",
+    "wish_i_knew": "[DATA_NEEDED]"
+  }
+}
+```
+
+**Purpose:** Agent's hard-won local knowledge. High conversion value.
+
+### Working With Agent (Pages 34–37)
+
+```json
+"working_with_agent": {
+  "pages": [34, 35, 36, 37],
+  "layout": "service_overview",
+  "content": {
+    "process": "[DATA_NEEDED]",
+    "tours": "[DATA_NEEDED]",
+    "search_strategy": "[DATA_NEEDED]",
+    "success_stories": "[DATA_NEEDED]",
+    "faqs": "[DATA_NEEDED]"
+  }
+}
+```
+
+**Purpose:** Agent value proposition and buyer journey. Direct lead nurture section.
+
+### Resources (Pages 38–39)
+
+```json
+"resources": {
+  "pages": [38, 39],
+  "layout": "resource_directory",
+  "content": {
+    "service_providers": "[DATA_NEEDED]",
+    "websites": "[DATA_NEEDED]",
+    "lender_recommendations": "[DATA_NEEDED]",
+    "agent_contact": {
+      "name": "{{AGENT_NAME}}",
+      "phone": "{{AGENT_PHONE}}",
+      "email": "{{AGENT_EMAIL}}",
+      "website": "{{AGENT_WEBSITE}}"
+    }
+  }
+}
+```
+
+**Purpose:** Curated directory of local service providers, lenders, and agent contact.
+
+### Back Cover (Page 40)
+
+```json
+"back_cover": {
+  "page": 40,
+  "layout": "back_cover",
+  "content": {
+    "tagline": "Your trusted guide to relocating to {{CITY}}",
+    "cta": "Ready to start your search? Call {{AGENT_PHONE}}"
+  }
+}
+```
+
+**Purpose:** Final CTA and branding closure.
+
+## Example: Populated Neighborhoods Section
+
+```json
+"neighborhoods": {
+  "pages": [11, 12, 13, 14, 15, 16],
+  "layout": "neighborhood_deep_dive",
+  "content": {
+    "neighborhoods": [
+      {
+        "name": "Downtown Wesley Chapel",
+        "city": "Wesley Chapel",
+        "vibe": "Walkable, mixed-use, family-friendly with strong community feel",
+        "housing_types": "Single-family homes, townhomes, condos",
+        "price_range": "$350K–$550K",
+        "schools": "Wesley Chapel High School (A-rated), Seabreeze Elementary",
+        "location_access": "5 min to downtown shops, 15 min to I-75, 20 min to Tampa",
+        "who_lives_here": "Young families, first-time buyers, retirees seeking walkability",
+        "agent_take": "Best value in the metro area right now. Strong appreciation trajectory."
+      },
+      {
+        "name": "Lutz Preserve",
+        "city": "Lutz",
+        "vibe": "Newer subdivision, master-planned, quiet, family-oriented",
+        "housing_types": "Single-family homes (mostly new construction)",
+        "price_range": "$450K–$700K",
+        "schools": "Lutz Elementary, Steinbrenner High School",
+        "location_access": "10 min to US 19 shopping, 15 min to I-75, 25 min to downtown",
+        "who_lives_here": "Families with kids, professionals seeking planned community amenities",
+        "agent_take": "Fastest-growing area. HOA fees run $150–$250/month, but amenities justify it."
+      }
+    ]
+  }
+}
+```
+
+## Related
+
+- [Relocation Guide Generator](/agent-instructions/relocation-guide-generator) – Agent workflow that populates this template
+- [Agent Profile Config](/assets/agent-profile-config) – Source of `{{AGENT_*}}` variables
+- [Lead Magnet Generation](/workflows/lead-magnet-generation) – End-to-end guide creation process

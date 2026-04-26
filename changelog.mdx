@@ -12,6 +12,35 @@ keywords: [changelog, history, releases, content-drops, sprint-log]
 
 Append-only log of significant changes. Newest entries first. Source of truth for what shipped when.
 
+## 2026-04-26 — Sprint: Runtime Assets (4 pages)
+
+Documented upstream runtime artifacts (config files, templates, shell scripts) AS-IS.
+
+**Added:** new `assets/` group with 4 pages:
+
+- `assets/agent-profile-config.mdx` — `examples/sample_agent_profile.yaml` schema (template-variable source)
+- `assets/relocation-guide-template.mdx` — `templates/relocation_guide_template.json` field-by-field walkthrough
+- `assets/email-sequence-templates.mdx` — `templates/email_sequences/{nurture,welcome}_sequence.md` paraphrased structure (no verbatim email bodies)
+- `assets/setup-scripts.mdx` — `scripts/{setup,build-knowledge-base,ingest-channel}.sh` consolidated reference
+
+**Site total:** 49 → 53 pages, 229 internal links validated (0 broken).
+
+**Skipped:** `knowledge_bases/documents/` (empty in upstream) and `knowledge_bases/books/` (DMCA risk on public site — paraphrased concepts already covered in `frameworks/` group).
+
+---
+
+## 2026-04-26 — Site Mode: Public
+
+Switched from Private+OAuth → Public.
+
+**Reason:**
+- Documentation.AI MCP `/_mcp` only serves public docs by default (per `/docs/ai/mcp-server`)
+- OAuth had a `Session Expired (400)` bug at the callback step we couldn't work around (state cookie validates correctly via curl but browser flow fails)
+
+**Verification:** 5/5 sample MCP queries return correct content from new pages. Site root now serves HTTP 200 directly (no OAuth redirect).
+
+---
+
 ## 2026-04-26 — Phase 2: Initial Content Drop (46 pages)
 
 Parallel content generation by 4 docs subagents. All MDX validated, frontmatter compliant, 0 broken links.

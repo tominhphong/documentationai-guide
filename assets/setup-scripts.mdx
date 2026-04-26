@@ -1,0 +1,302 @@
+---
+title: "Setup Scripts"
+description: "Bash scripts for framework initialization, knowledge base building, and data ingestion."
+last_reviewed: 2026-04-26
+type: reference
+audience: ai-agent-primary
+use_case: ["run-setup", "build-knowledge-bases", "ingest-youtube-channels"]
+keywords: [setup, bash-scripts, initialization, knowledge-base, data-ingestion]
+---
+
+# Setup Scripts
+
+> Source: `scripts/setup.sh` | `scripts/build-knowledge-base.sh` | `scripts/ingest-channel.sh`
+
+Three bash scripts automate framework initialization, knowledge base construction, and YouTube channel ingestion. Run them in sequence during first-time setup, then individually as needed for updates.
+
+## setup.sh
+
+**Purpose:** Install dependencies, create config directories, and prepare the framework for first use.
+
+**When to run:** Once, after cloning the framework repository.
+
+**Prerequisites:**
+- `python3` (3.10+)
+- `node` and `npm`
+- `yt-dlp` (install via `brew install yt-dlp` or `pip install yt-dlp`)
+
+**Command:**
+
+```bash
+bash scripts/setup.sh
+```
+
+**What it does (7 steps):**
+
+1. **Checks prerequisites** – Verifies Python 3.10+, Node, npm, yt-dlp are installed
+2. **Creates config directory** – `~/.real_estate_ai/` with 700 permissions (user-only)
+3. **Initializes manifest** – `~/.real_estate_ai/manifest.json` (tracks ingested datasets)
+4. **Installs Python packages** – ChromaDB, LangChain, embedding models, document parsers
+5. **Installs MCP server dependencies** – Runs `npm install` in `mcp_server/` directory
+6. **Builds MCP server** – Compiles TypeScript to JavaScript
+7. **Pre-downloads embedding model** – `all-MiniLM-L6-v2` (avoids first-run delay)
+8. **Copies config templates** – Creates `config/.env` and prompts for agent profile setup
+
+**Output:**
+
+```
+============================================================
+  Setup Complete!
+============================================================
+
+Next steps:
+  1. Edit config/agent_profile.yaml with your agent info
+  2. Edit config/.env with your API keys
+  3. Edit config/channels.yaml with your YouTube channels
+
+Quick start:
+  bash scripts/ingest-channel.sh @YourHandle
+```
+
+**Key files created/modified:**
+- `~/.real_estate_ai/manifest.json` – Dataset registry
+- `config/.env` – Environment variables (from template)
+- `config/agent_profile.yaml` – Agent identity config
+- `mcp_server/node_modules/` – Node dependencies
+- `mcp_server/dist/` – Compiled MCP server
+
+**Expected duration:** 2–5 minutes
+
+---
+
+## build-knowledge-base.sh
+
+**Purpose:** Bulk-ingest all configured YouTube channels and local documents into ChromaDB vector databases.
+
+**When to run:**
+- After initial setup, to ingest all your configured channels at once
+- Periodically (weekly/monthly) to refresh knowledge bases with new content
+
+**Prerequisites:**
+- `setup.sh` must have completed successfully
+- `config/channels.yaml` must exist and list channels to ingest
+- `yt-dlp` must be able to fetch transcripts from YouTube
+
+**Command:**
+
+```bash
+bash scripts/build-knowledge-base.sh
+```
+
+**Flags:** None. Script reads all channels from `config/channels.yaml`.
+
+**What it does (3 steps):**
+
+1. **Parses channels.yaml** – Extracts all channel handles from config
+2. **Ingests each channel** – Calls `ingest-channel.sh` for each handle with default flags (`--days 90 --max 100`)
+3. **Indexes local documents** – If `knowledge_bases/documents/` exists, indexes `.md`, `.txt`, `.pdf`, `.docx` files
+
+**Output example:**
+
+```
+============================================================
+  Building All Knowledge Bases
+============================================================
+
+[1/3] Ingesting YouTube channels from config/channels.yaml...
+
+--- Ingesting: @excellecorerealestate ---
+[1/2] Fetching videos and transcripts...
+  Downloaded 47 videos from @excellecorerealestate
+[2/2] Ingesting transcripts to ChromaDB...
+  Ingested 47 documents into youtube_excellecore
+
+--- Ingesting: @TampaFloridaLiving ---
+...
+
+[2/3] Indexing local documents...
+  Local documents indexed
+
+[3/3] Knowledge base inventory:
+  youtube_excellecore (47 documents)
+  youtube_tampa_florida_living (52 documents)
+  local_documents (8 documents)
+
+============================================================
+  Knowledge bases built!
+============================================================
+```
+
+**How it ingests channels:**
+
+For each channel handle in `config/channels.yaml`, the script:
+- Downloads up to 100 videos from the last 90 days (default)
+- Extracts closed captions/auto-generated transcripts
+- Splits transcripts into chunks
+- Generates embeddings via `all-MiniLM-L6-v2` model
+- Stores vectors in ChromaDB at `knowledge_bases/vectors/youtube_{handle}`
+
+**Key files created/modified:**
+- `knowledge_bases/vectors/youtube_*.db/` – ChromaDB vector stores
+- `knowledge_bases/transcripts/{handle}/` – Downloaded `.txt` transcript files
+- `~/.real_estate_ai/manifest.json` – Updated with new datasets
+
+**Expected duration:** 5–30 minutes (depends on number of channels and video volume)
+
+---
+
+## ingest-channel.sh
+
+**Purpose:** Download transcripts and ingest a single YouTube channel into ChromaDB.
+
+**When to run:**
+- To add a new channel after initial setup
+- To refresh one channel with newer videos
+- To test channel ingestion before bulk build
+
+**Prerequisites:**
+- `setup.sh` must have completed successfully
+- YouTube channel must be public and have videos with captions
+
+**Command:**
+
+```bash
+bash scripts/ingest-channel.sh @ChannelHandle [--days 60] [--max 50]
+```
+
+**Arguments:**
+
+| Argument | Default | Purpose |
+|----------|---------|---------|
+| `@ChannelHandle` | Required | YouTube channel handle (with `@` prefix) |
+| `--days N` | 60 | Look back N days for videos |
+| `--max N` | 50 | Fetch at most N videos |
+
+**Examples:**
+
+```bash
+# Ingest default (60 days, max 50 videos)
+bash scripts/ingest-channel.sh @excellecorerealestate
+
+# Ingest 1 year of history, up to 200 videos
+bash scripts/ingest-channel.sh @MyChannel --days 365 --max 200
+
+# Ingest only past 7 days, max 20 videos (for frequent updates)
+bash scripts/ingest-channel.sh @MyChannel --days 7 --max 20
+```
+
+**What it does (2 steps):**
+
+1. **Fetches videos and transcripts** – Calls `tools/youtube_tools/fetch_videos.py`
+   - Uses `yt-dlp` to list videos on the channel
+   - Filters by date range (`--days`)
+   - Downloads closed captions or auto-generated transcripts
+   - Stores raw `.txt` files in `knowledge_bases/transcripts/{handle}/`
+
+2. **Ingests to RAG** – Calls `tools/youtube_tools/ingest_to_rag.py`
+   - Chunks transcripts into overlapping 512-token segments
+   - Generates embeddings via `all-MiniLM-L6-v2` model
+   - Stores vectors in ChromaDB
+   - Derives database name from handle (e.g., `@my-channel` → `youtube_my_channel`)
+
+**Output example:**
+
+```
+============================================================
+  Ingesting YouTube Channel: @excellecorerealestate
+  Database name: youtube_excellecore
+============================================================
+
+[1/2] Fetching videos and transcripts...
+  Downloaded 47 videos from @excellecorerealestate
+  Extracted 47 transcripts to knowledge_bases/transcripts/excellecorerealestate/
+
+[2/2] Ingesting transcripts to ChromaDB...
+  Ingesting 47 documents...
+  Embeddings generated and indexed
+  47 documents ingested into youtube_excellecore
+
+============================================================
+  Done! Channel ingested as: youtube_excellecore
+============================================================
+
+Test it:
+  python3 tools/rag_tools/rag_query.py "best neighborhoods" --db-path knowledge_bases/vectors/youtube_excellecore
+```
+
+**Key files created/modified:**
+- `knowledge_bases/vectors/youtube_{dbname}/` – ChromaDB vector store
+- `knowledge_bases/transcripts/{handle}/` – Downloaded transcript `.txt` files
+- `~/.real_estate_ai/manifest.json` – Updated with new dataset record
+
+**Expected duration:** 2–15 minutes (depends on video count and transcript length)
+
+**Testing the ingest:**
+
+After ingestion completes, query the knowledge base to verify:
+
+```bash
+python3 tools/rag_tools/rag_query.py "best neighborhoods in [city]" --db-path knowledge_bases/vectors/youtube_excellecore
+```
+
+---
+
+## Integration with Workflows
+
+**Typical first-time setup flow:**
+
+```bash
+# 1. Initialize framework
+bash scripts/setup.sh
+
+# 2. Edit your config
+nano config/agent_profile.yaml
+nano config/.env
+nano config/channels.yaml
+
+# 3. Build all knowledge bases
+bash scripts/build-knowledge-base.sh
+
+# 4. Start using the framework (MCP server, agents, etc.)
+```
+
+**Periodic maintenance:**
+
+```bash
+# Weekly: Refresh all knowledge bases
+bash scripts/build-knowledge-base.sh
+
+# As needed: Add a new channel
+bash scripts/ingest-channel.sh @NewChannel --days 90
+```
+
+Cross-reference: `/framework/setup-overview` describes the full initialization workflow and where these scripts fit.
+
+---
+
+## Troubleshooting
+
+<Callout kind="warning">
+**Missing `yt-dlp`:** Install via `brew install yt-dlp` (macOS) or `pip install yt-dlp` (any OS).
+</Callout>
+
+<Callout kind="warning">
+**Python 3.10+ not found:** Check `python3 --version`. Install via Homebrew (`brew install python@3.10`) or python.org.
+</Callout>
+
+<Callout kind="warning">
+**No transcripts found in channel:** YouTube channel may not have captions enabled, or videos are older than 9 years (YouTube disabled legacy captions). Try a newer channel or one with community captions.
+</Callout>
+
+<Callout kind="warning">
+**ChromaDB error during ingest:** Check that `knowledge_bases/` directory exists and is writable. Run `mkdir -p knowledge_bases/{vectors,transcripts,documents}`.
+</Callout>
+
+---
+
+## Related
+
+- [Setup Overview](/framework/setup-overview) – High-level setup workflow
+- [Agent Profile Config](/assets/agent-profile-config) – Config file that these scripts read
+- [MCP RAG Tools](/mcp-tools/rag) – How knowledge bases power agent responses
+- [Help Center Setup Guide](/help-center/setup-guide) – User-friendly setup instructions
